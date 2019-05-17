@@ -3,7 +3,11 @@ fun fst (x, y) = x
 (* Additional functions for List *)
 signature EXTENDED_LIST =
 sig
+    val length : 'a list -> int
+    val nth : 'a list * int -> 'a
+    val map: ('a -> 'b) -> 'a list -> 'b list
     val mapi: (int * 'a -> 'b) -> 'a list -> 'b list
+    val foldl: ('a * 'b -> 'b) -> 'b -> 'a list -> 'b
     val foldli: (int * 'a * 'b -> 'b) -> 'b -> 'a list -> 'b
     val toString: ('a -> string) * 'a list -> string
     val bestOpt: ('a * 'a -> bool) * 'a list -> 'a option
@@ -13,6 +17,11 @@ end
 
 structure ExtendedList : EXTENDED_LIST =
 struct
+
+val length = List.length
+val nth = List.nth
+val map = List.map
+val foldl = List.foldl
 
 fun mapi f l =
     let

@@ -25,7 +25,7 @@ let
                                      ExtendedList.foldli
                                          (fn (i, e, (i', e')) => if e < e' then (i, e) else (i', e'))
                                          (0, 999999.0)
-                                         (List.map (fn e => distance e p) centroids)
+                                         (ExtendedList.map (fn e => distance e p) centroids)
                                  )
                              ) apprData
                      val centroids =

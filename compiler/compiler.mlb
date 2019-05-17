@@ -1,0 +1,11 @@
+local
+  $(SML_LIB)/basis/basis.mlb
+  $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+  ast.sml
+  untyped.grm.sig
+  untyped.grm.sml
+  untyped.lex.sml
+  parser.sml
+in
+  main.sml
+end

@@ -1,0 +1,59 @@
+(*  User declarations section for helper functions *)
+open Ast
+%%
+(* ML Yacc Declarations *)
+%name Untyped (* tokens signature will be Untyped_TOKENS *)
+(*
+  The structure Token is defined by LrParser structure provided
+  by ml-yacc-lib
+*)
+%header (functor UntypedLrValsFun (structure Token : TOKEN) : Untyped_LRVALS)
+%eop EOF
+%noshift EOF
+%pos int
+(*
+  Lex functor is constructed to expect TOKENS signature
+  constructed from following declarations
+ *)
+%term   LAM
+      | DOT
+      | LPAREN
+      | RPAREN
+      | VAR of string
+      | NUMB of string
+      | MAP
+      | FOLDL
+      | ADD
+      | MUL
+      | LES
+      | EQ
+      | GRE
+   | EOF
+%nonterm prog of top_level | expr of exp | non_lam_term of exp
+  | atom of exp
+(*
+  Precedence and associativity are implicit
+*)
+%verbose
+%pure
+
+%%
+(* BNF Rules *)
+prog : expr (expr)
+
+expr :  LAM VAR DOT expr (Abs(VAR,expr))
+      | non_lam_term (non_lam_term)
+
+non_lam_term :  atom (atom)
+      | MAP atom atom (Map(atom1, atom2))
+      | FOLDL atom atom atom (Foldl(atom1, atom2, atom3))
+      | non_lam_term atom (App(non_lam_term,atom))
+
+atom :  VAR (Var(VAR))
+              | LPAREN expr RPAREN (expr)
+              | expr ADD expr (Op(Add, expr1, expr2))
+              | expr MUL expr (Op(Mul, expr1, expr2))
+              | expr LES expr (Op(Less, expr1, expr2))
+              | expr EQ expr (Op(Eq, expr1, expr2))
+              | expr GRE expr (Op(Greater, expr1, expr2))
+              | NUMB (constFromString(NUMB))
