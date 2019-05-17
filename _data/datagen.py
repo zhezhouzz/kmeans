@@ -23,8 +23,8 @@ def toFile(file_name, l):
     f.close()
 
 if __name__ == "__main__":
-    datas1 = points_gen(10, 1.0, 2.0, 0.0, 0.0)
-    datas2 = points_gen(10, 1.0, 2.0, 100.0, 100.0)
+    datas1 = points_gen(100, 1.0, 2.0, 0.0, 0.0)
+    datas2 = points_gen(100, 1.0, 2.0, 100.0, 100.0)
     datas = datas1 + datas2
     shuffle(datas)
-    toFile("psudo.txt", datas)
+    toFile("psudo100.txt", datas)

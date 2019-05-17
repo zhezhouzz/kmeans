@@ -34,11 +34,37 @@ fun printDatas datas =
             val _ = print ((Real.toString x) ^ " " ^ (Real.toString y) ^ "\n")
         in
             printDatas t
-        end;
+        end
 
-let
-    val datas = fromFile "psudo.txt"
-    val _ = printDatas datas
-in
-    ()
-end;
+fun centroid (rangeX, rangeY) =
+    let
+        val x = Mlrandom.uniformReal rangeX
+        val y = Mlrandom.uniformReal rangeY
+    in
+        (x, y)
+    end
+
+fun centroidToString (x, y) =
+    "(" ^ (Real.toString x) ^ ", " ^ (Real.toString y) ^ ")"
+
+fun centroidsToString l =
+    List.foldl (fn (e, r) =>
+                   r ^ (centroidToString e) ^ "\n"
+               ) "" l
+
+fun distance (x1, y1) (x2, y2) : real =
+    (x1 - x2) * (x1 - x2) +
+    (y1 - y2) * (y1 - y2)
+
+fun loop f input n =
+    if n = 0 then input else
+    loop f (f input) (n - 1)
+
+fun centroidGen n (rangeX, rangeY) =
+    let
+        fun aux i =
+            if i = n then [] else
+            (centroid (rangeX, rangeY)) :: (aux (i + 1))
+    in
+        aux 0
+    end

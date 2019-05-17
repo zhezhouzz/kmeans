@@ -1,0 +1,2 @@
+rm apprtest
+rm origin
