@@ -1,0 +1,3 @@
+(fn (data : int list : sample) =>
+(map (fn x => x) data)
+)

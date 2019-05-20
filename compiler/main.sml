@@ -7,8 +7,10 @@ let
                                                    (TextIO.print ("Can't open "^fileName^".\n");
                                                     raise Fail "Exiting\n")
     val ast = Parser.parse fileStream
-    (* val _ = print ((AstDsl.layout ast) ^ "\n") *)
-    val _ = print ((AstDsl.astToSML ast) ^ "\n")
+    val smlast = FallBackPass.pass ast
+    val _ = print ((AstSml.layout smlast) ^ "\n")
+    val apprast = ApprPass.pass ast
+    val _ = print ((AstApprSml.layout apprast) ^ "\n")
 in
     ()
 end;
