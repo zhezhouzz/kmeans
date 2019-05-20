@@ -1,7 +1,7 @@
 structure Parser:sig
   exception ParseError of string * int option * int option
-  val parse : TextIO.instream -> Ast.top_level
-  val parseString : string -> Ast.top_level
+  val parse : TextIO.instream -> AstDsl.top_level
+  val parseString : string -> AstDsl.top_level
 end = 
 struct
 

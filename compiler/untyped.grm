@@ -1,5 +1,5 @@
 (*  User declarations section for helper functions *)
-open Ast
+open AstDsl
 %%
 (* ML Yacc Declarations *)
 %name Untyped (* tokens signature will be Untyped_TOKENS *)
@@ -91,4 +91,4 @@ atom :
       | expr GRE expr (Op(Greater, expr1, expr2))
       | FST expr (Fst(expr))
       | SND expr (Snd(expr))
-      | NUMB (constFromString(NUMB))
+      | NUMB (Con(constFromString(NUMB)))

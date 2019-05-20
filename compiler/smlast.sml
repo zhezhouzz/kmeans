@@ -1,7 +1,10 @@
-functor Ast (A : ATOM) =
+functor SmlAst (A : AST) =
 struct
-open A
+type id = string
 
+type const = A.const
+type oper = A.const
+type ctype = A.ctype
 datatype exp =
          Var of id
          | Pair of exp * exp
@@ -10,7 +13,6 @@ datatype exp =
          | Ifte of exp * exp * exp
          | App of exp * exp
          | Abs of id * ctype * exp
-         | AbsAppr of id * ctype * id * exp
          | Con of const
          | Op of oper * exp * exp
          | Map of exp * exp
@@ -23,93 +25,30 @@ datatype exp =
 
 type top_level = exp
 
-  fun layout ast =
-      case ast of
-          Var v => v
-        | Pair (e1, e2) =>
-          let val s1 = layout e1
-              val s2 = layout e2
-          in
-              "("^s1^","^s2^")"
-          end
-        | Fst e => "(fst " ^ (layout e) ^ ")"
-        | Snd e => "(snd " ^ (layout e) ^ ")"
-        | Ifte (e1, e2, e3) =>
-          "(if " ^ (layout e1) ^ " then " ^ (layout e2) ^ " else " ^ (layout e3) ^ ")"
-        | Con c => constToString c
-        | App(e1,e2) =>
-          let val s1 = layout e1
-              val s2 = layout e2
-          in
-              "("^s1^" "^s2^")"
-          end
-        | Abs(id, t, e) =>
-          let val s = layout e
-          in
-              "(fn ("^ id ^ " : " ^ (typeToString t) ^ ") => " ^ s ^")"
-          end
-        | AbsAppr(id, t, distr, e) =>
-          let val s = layout e
-          in
-              "(fn ("^ id ^ " : " ^ (typeToString t) ^ " : " ^ distr ^ ") => " ^ s ^")"
-          end
-        | Op (oper,e1, e2) =>
-          let
-              val s1 = layout e1
-              val s2 = layout e2
-              val s0 = operToString oper
-          in
-              "(" ^ s1 ^ s0 ^ s2 ^ ")"
-          end
-        | Map (e1, e2) =>
-          let
-              val s1 = layout e1
-              val s2 = layout e2
-          in
-              "(map " ^ s1 ^ " " ^ s2 ^ ")"
-          end
-        | Foldl (e1, e2, e3) =>
-          let
-              val s1 = layout e1
-              val s2 = layout e2
-              val s3 = layout e3
-          in
-              "(foldl " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
-          end
-        | Mapi (e1, e2) =>
-          let
-              val s1 = layout e1
-              val s2 = layout e2
-          in
-              "(mapi " ^ s1 ^ " " ^ s2 ^ ")"
-          end
-        | Foldli (e1, e2, e3) =>
-          let
-              val s1 = layout e1
-              val s2 = layout e2
-              val s3 = layout e3
-          in
-              "(foldli " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
-          end
-        | Nth (e1) =>
-          let
-              val s1 = layout e1
-          in
-              "(nth " ^ s1 ^ ")"
-          end
-        | Loop (e1, e2, e3) =>
-          let
-              val s1 = layout e1
-              val s2 = layout e2
-              val s3 = layout e3
-          in
-              "(loop " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
-          end
-        | Unit => "()"
+fun appr ast =
+    case ast of
+        A.AbsAppr(id, t, distr, e) =>
+        Abs (id, t, App (Abs (id, t, appr e), App (Var distr, Var id)))
+      | A.Var v => Var v
+      | A.Pair (e1, e2) => A.Pair (appr e1, appr e2)
+      | A.Fst e => Fst (appr e)
+      | A.Snd e => Snd (appr e)
+      | A.Ifte (e1, e2, e3) => Ifte (appr e1, appr e2, appr e3)
+      | A.Con c => Con c
+      | A.App (e1, e2) => App (appr e1, appr e2)
+      | A.Abs (v, e) => Abs (v, appr e)
+      | A.Op (oper, e1, e2) => Op (oper, appr e1, appr e2)
+      | A.Map (e1, e2) => Map (appr e1, appr e2)
+      | A.Foldl (e1, e2, e3) => Foldl (appr e1, appr e2, appr e3)
+      | A.Mapi (e1, e2) => Mapi (appr e1, appr e2)
+      | A.Foldli (e1, e2, e3) => Foldli (appr e1, appr e2, appr e3)
+      | A.Nth (e) => Nth (appr e)
+      | A.Loop (e1, e2, e3) => Loop (appr e1, appr e2, appr e3)
+      | A.Unit => Unit
 
   fun astToSMLAux ast =
       case ast of
-          Var x => x
+          VarType (Cvar (x, _)) => x
         | Pair (e1, e2) =>
           let val s1 = astToSMLAux e1
               val s2 = astToSMLAux e2
@@ -122,8 +61,7 @@ type top_level = exp
           "(if " ^ (astToSMLAux e1) ^ " then " ^ (astToSMLAux e2) ^ " else " ^ (astToSMLAux e3) ^ ")"
         | Con c => constToString c
         | App (e1, e2) => "("^ (astToSMLAux e1) ^ " " ^ (astToSMLAux e2) ^ ")"
-        | Abs (id, _, e) => "(fn " ^ id ^ " => " ^ (astToSMLAux e) ^")"
-        | AbsAppr (id, _, _, e) => "(fn " ^ id ^ " => " ^ (astToSMLAux e) ^")"
+        | Abs (Cvar (id, _), e) => "(fn " ^ id ^ " => " ^ (astToSMLAux e) ^")"
         | Op (oper,e1, e2) =>
           let
               val s1 = astToSMLAux e1
@@ -182,5 +120,3 @@ type top_level = exp
       "val _ = " ^ (astToSMLAux ast) ^ ";\n"
 
 end
-
-structure AstDsl = Ast(Atom);
