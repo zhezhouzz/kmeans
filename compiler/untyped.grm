@@ -20,17 +20,37 @@ open Ast
       | LPAREN
       | RPAREN
       | VAR of string
+      | COLON
+      | COMMA
       | NUMB of string
       | MAP
+      | MAPI
       | FOLDL
+      | FOLDLI
+      | NTH
+      | LOOP
       | ADD
       | MUL
+      | DIV
       | LES
       | EQ
       | GRE
+      | CINT
+      | CREAL
+      | CLIST
+      | WILD
+      | IF
+      | ELSE
+      | THEN
+      | FST
+      | SND
    | EOF
-%nonterm prog of top_level | expr of exp | non_lam_term of exp
-  | atom of exp
+%nonterm prog of top_level
+               | expr of exp
+               | non_lam_term of exp
+               | cctype of ctype
+               | ccvar of cvar
+               | atom of exp
 (*
   Precedence and associativity are implicit
 *)
@@ -41,19 +61,40 @@ open Ast
 (* BNF Rules *)
 prog : expr (expr)
 
-expr :  LAM VAR DOT expr (Abs(VAR,expr))
-      | non_lam_term (non_lam_term)
+expr :  LAM ccvar DOT expr (Abs(ccvar, expr))
+               | non_lam_term (non_lam_term)
 
-non_lam_term :  atom (atom)
+non_lam_term : atom (atom)
       | MAP atom atom (Map(atom1, atom2))
+      | MAPI atom atom (Mapi(atom1, atom2))
       | FOLDL atom atom atom (Foldl(atom1, atom2, atom3))
+      | FOLDLI atom atom atom (Foldli(atom1, atom2, atom3))
+      | NTH atom (Nth(atom))
+      | IF expr THEN expr ELSE expr (Ifte (expr1, expr2, expr3))
+      | LOOP atom atom atom (Loop(atom1, atom2, atom3))
       | non_lam_term atom (App(non_lam_term,atom))
 
-atom :  VAR (Var(VAR))
-              | LPAREN expr RPAREN (expr)
-              | expr ADD expr (Op(Add, expr1, expr2))
-              | expr MUL expr (Op(Mul, expr1, expr2))
-              | expr LES expr (Op(Less, expr1, expr2))
-              | expr EQ expr (Op(Eq, expr1, expr2))
-              | expr GRE expr (Op(Greater, expr1, expr2))
-              | NUMB (constFromString(NUMB))
+cctype :
+        CINT (Cint)
+      | CREAL (Creal)
+      | cctype CLIST (Clist(cctype))
+      | VAR (CDistr(VAR))
+      | WILD (Unknown)
+
+ccvar :
+        VAR (Cvar(VAR, Unknown))
+      | LPAREN VAR COLON cctype RPAREN (Cvar(VAR, cctype))
+atom :
+        ccvar (VarType(ccvar))
+      | LPAREN expr RPAREN (expr)
+      | LPAREN RPAREN (Unit)
+      | expr COMMA expr (Pair(expr1, expr2))
+      | expr ADD expr (Op(Add, expr1, expr2))
+      | expr MUL expr (Op(Mul, expr1, expr2))
+      | expr DIV expr (Op(Div, expr1, expr2))
+      | expr LES expr (Op(Less, expr1, expr2))
+      | expr EQ expr (Op(Eq, expr1, expr2))
+      | expr GRE expr (Op(Greater, expr1, expr2))
+      | FST expr (Fst(expr))
+      | SND expr (Snd(expr))
+      | NUMB (constFromString(NUMB))

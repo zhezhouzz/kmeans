@@ -1,5 +1,5 @@
 let
-    val (data : \appr distr) = fromFile "_data/psudo100.txt"
+    val (data : distr) = fromFile "_data/psudo100.txt"
     val centroids = centroidGen 2 ((0.00, 100.00), (0.00, 100.00))
     val centroids =
         loop (fn centroids =>

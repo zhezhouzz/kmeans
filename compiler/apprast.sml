@@ -1,4 +1,4 @@
-structure Ast =
+functor ApprAst (A : AST) =
 struct
 type id = string
 
@@ -13,13 +13,13 @@ datatype oper =
          | Eq
          | Greater
 datatype exp =
-         VarType of cvar
+         Var of id
          | Pair of exp * exp
          | Fst of exp
          | Snd of exp
          | Ifte of exp * exp * exp
          | App of exp * exp
-         | Abs of cvar * exp
+         | Abs of id * ctype * exp
          | Con of const
          | Op of oper * exp * exp
          | Map of exp * exp
@@ -33,53 +33,28 @@ datatype exp =
          Cint
          | Creal
          | Clist of ctype
-         | CDistr of id
        | Unknown
-     and cvar = Cvar of id * ctype
 
 type top_level = exp
 
-  fun constFromString str =
-      let
-          (* val _ = print ("constFromString : " ^ str ^ "\n") *)
-      in
-          if Char.contains str #"."
-          then
-              case Real.fromString str of
-                  SOME x => Con (ConstReal x)
-                | NONE => raise Fail ("constFromString fail: " ^ str)
-          else
-              case Int.fromString str of
-                  SOME x => Con (ConstInt x)
-                | NONE => raise Fail ("constFromString fail: " ^ str)
-      end
-
-  fun constToString c =
-      case c of
-          ConstInt x => Int.toString x
-        | ConstReal x => Real.fmt (StringCvt.FIX (SOME 6)) x
-
-  fun operToString oper =
-      case oper of
-          Add => "+"
-        | Mul => "*"
-        | Div => "/"
-        | Less => "<"
-        | Eq => "="
-        | Greater => ">"
-
-  fun typeToString t =
-      case t of
-          Cint => "int"
-        | Creal => "real"
-        | Clist t =>
-          "list (" ^ (typeToString t) ^ ")"
-        | CDistr e => e
-        | Unknown => "_"
-  and varToString v =
+fun typeToAppr t =
+    case t of
+        A.Cint => Cint
+      | A.Creal => Creal
+      | A.Clist t => Clist (typeToAppr t)
+      | A.CDistr e => e
+      | A.Unknown => Unknown
+  and varToAppr v =
       case v of
-          Cvar (id, t) =>
-          id ^ " : " ^ (typeToString t)
+          A.Cvar (id, t) =>
+          case t of
+              A.Cint => Cvar (id, Cint)
+            | A.Creal => Cvar (id, Creal)
+            | A.Clist t =>
+              (case varToAppr (A.Cvar (id, t)) of
+                  Cvar (id, t) => Cvar (id, Clist t))
+            | A.CDistr e => App (e, v)
+            | A.Unknown => Unknown
   and layout ast =
       case ast of
           VarType v =>
