@@ -37,7 +37,7 @@ datatype exp =
 
 type top_level = exp
 
-fun typeToAppr t =
+fun typeToAppr t =  
     case t of
         A.Cint => Cint
       | A.Creal => Creal

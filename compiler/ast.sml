@@ -13,13 +13,13 @@ datatype oper =
          | Eq
          | Greater
 datatype exp =
-         VarType of cvar
+         Var of id
          | Pair of exp * exp
          | Fst of exp
          | Snd of exp
          | Ifte of exp * exp * exp
          | App of exp * exp
-         | Abs of cvar * exp
+         | Abs of id * ctype * exp
          | Con of const
          | Op of oper * exp * exp
          | Map of exp * exp
@@ -35,7 +35,6 @@ datatype exp =
          | Clist of ctype
          | CDistr of id
        | Unknown
-     and cvar = Cvar of id * ctype
 
 type top_level = exp
 
@@ -76,14 +75,9 @@ type top_level = exp
           "list (" ^ (typeToString t) ^ ")"
         | CDistr e => e
         | Unknown => "_"
-  and varToString v =
-      case v of
-          Cvar (id, t) =>
-          id ^ " : " ^ (typeToString t)
   and layout ast =
       case ast of
-          VarType v =>
-          "(" ^ (varToString v) ^ ")"
+          Var v => v
         | Pair (e1, e2) =>
           let val s1 = layout e1
               val s2 = layout e2
@@ -101,10 +95,10 @@ type top_level = exp
           in
               "("^s1^" "^s2^")"
           end
-        | Abs(v,e) =>
+        | Abs(id, t, e) =>
           let val s = layout e
           in
-              "(fn "^(varToString v)^" => " ^ s ^")"
+              "(fn ("^ id ^ " : " ^ (typeToString t) ^ ") => " ^ s ^")"
           end
         | Op (oper,e1, e2) =>
           let
@@ -162,7 +156,7 @@ type top_level = exp
 
   fun astToSMLAux ast =
       case ast of
-          VarType (Cvar (x, _)) => x
+          Var x => x
         | Pair (e1, e2) =>
           let val s1 = astToSMLAux e1
               val s2 = astToSMLAux e2
@@ -175,7 +169,7 @@ type top_level = exp
           "(if " ^ (astToSMLAux e1) ^ " then " ^ (astToSMLAux e2) ^ " else " ^ (astToSMLAux e3) ^ ")"
         | Con c => constToString c
         | App (e1, e2) => "("^ (astToSMLAux e1) ^ " " ^ (astToSMLAux e2) ^ ")"
-        | Abs (Cvar (id, _), e) => "(fn " ^ id ^ " => " ^ (astToSMLAux e) ^")"
+        | Abs (id, _, e) => "(fn " ^ id ^ " => " ^ (astToSMLAux e) ^")"
         | Op (oper,e1, e2) =>
           let
               val s1 = astToSMLAux e1
