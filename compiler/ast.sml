@@ -12,6 +12,11 @@ datatype oper =
          | Less
          | Eq
          | Greater
+datatype ctype =
+         Cint
+         | Creal
+         | Clist of ctype
+         | Unknown
 datatype exp =
          Var of id
          | Pair of exp * exp
@@ -20,6 +25,7 @@ datatype exp =
          | Ifte of exp * exp * exp
          | App of exp * exp
          | Abs of id * ctype * exp
+         | AbsAppr of id * ctype * id * exp
          | Con of const
          | Op of oper * exp * exp
          | Map of exp * exp
@@ -28,13 +34,8 @@ datatype exp =
          | Foldli of exp * exp * exp
          | Nth of exp
          | Loop of exp * exp * exp
-         | Unit
-     and ctype =
-         Cint
-         | Creal
-         | Clist of ctype
-         | CDistr of id
-       | Unknown
+       | Unit
+
 
 type top_level = exp
 
@@ -73,9 +74,9 @@ type top_level = exp
         | Creal => "real"
         | Clist t =>
           "list (" ^ (typeToString t) ^ ")"
-        | CDistr e => e
         | Unknown => "_"
-  and layout ast =
+
+  fun layout ast =
       case ast of
           Var v => v
         | Pair (e1, e2) =>
@@ -99,6 +100,11 @@ type top_level = exp
           let val s = layout e
           in
               "(fn ("^ id ^ " : " ^ (typeToString t) ^ ") => " ^ s ^")"
+          end
+        | AbsAppr(id, t, distr, e) =>
+          let val s = layout e
+          in
+              "(fn ("^ id ^ " : " ^ (typeToString t) ^ " : " ^ distr ^ ") => " ^ s ^")"
           end
         | Op (oper,e1, e2) =>
           let
@@ -170,6 +176,7 @@ type top_level = exp
         | Con c => constToString c
         | App (e1, e2) => "("^ (astToSMLAux e1) ^ " " ^ (astToSMLAux e2) ^ ")"
         | Abs (id, _, e) => "(fn " ^ id ^ " => " ^ (astToSMLAux e) ^")"
+        | AbsAppr (id, _, _, e) => "(fn " ^ id ^ " => " ^ (astToSMLAux e) ^")"
         | Op (oper,e1, e2) =>
           let
               val s1 = astToSMLAux e1

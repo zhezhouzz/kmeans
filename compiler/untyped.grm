@@ -62,6 +62,7 @@ prog : expr (expr)
 
 expr :  LAM VAR DOT expr (Abs(VAR, Unknown, expr))
                | LAM LPAREN VAR COLON cctype RPAREN DOT expr (Abs(VAR, cctype, expr))
+               | LAM LPAREN VAR COLON cctype COLON VAR RPAREN DOT expr (AbsAppr(VAR1, cctype, VAR2, expr))
                | non_lam_term (non_lam_term)
 non_lam_term : atom (atom)
       | MAP atom atom (Map(atom1, atom2))
@@ -76,7 +77,6 @@ cctype :
         CINT (Cint)
       | CREAL (Creal)
       | cctype CLIST (Clist(cctype))
-      | VAR (CDistr(VAR))
       | WILD (Unknown)
 atom :
         VAR (Var(VAR))

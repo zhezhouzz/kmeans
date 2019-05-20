@@ -1,4 +1,4 @@
-(fn (data : int)  =>
+(fn (data : _ : sample)  =>
     (fn centroids =>
         (fn centroidsnew =>
             (print (centroidsToString centroidsnew))
