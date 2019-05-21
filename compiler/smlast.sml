@@ -3,15 +3,15 @@ sig
     structure Atoms: ATOMS
 
     datatype exp =
-             Var of Atoms.id
+             Var of Atoms.Id.t
              | Pair of exp * exp
              | Fst of exp
              | Snd of exp
              | Ifte of exp * exp * exp
              | App of exp * exp
-             | Abs of Atoms.id * Atoms.ctype * exp
-             | Con of Atoms.const
-             | Op of Atoms.oper * exp * exp
+             | Abs of Atoms.Id.t * Atoms.Type.t * exp
+             | Con of Atoms.Const.t
+             | Op of Atoms.Operator.t * exp * exp
              | Map of exp * exp
              | Foldl of exp * exp * exp
              | Mapi of exp * exp
@@ -26,21 +26,17 @@ end
 functor SmlAst (Atoms : ATOMS) : SML_AST=
 struct
 structure Atoms = Atoms
-type id = Atoms.id
-type ctype = Atoms.ctype
-type const = Atoms.const
-type oper = Atoms.oper
 open Atoms
 datatype exp =
-         Var of id
+         Var of Id.t
          | Pair of exp * exp
          | Fst of exp
          | Snd of exp
          | Ifte of exp * exp * exp
          | App of exp * exp
-         | Abs of id * ctype * exp
-         | Con of const
-         | Op of oper * exp * exp
+         | Abs of Id.t * Type.t * exp
+         | Con of Const.t
+         | Op of Operator.t * exp * exp
          | Map of exp * exp
          | Foldl of exp * exp * exp
          | Mapi of exp * exp
@@ -53,16 +49,16 @@ type top_level = exp
 
 fun layoutAux ast =
       case ast of
-          Var x => idToString x
+          Var x => Id.layout x
         | Pair (e1, e2) => "(" ^ (layoutAux e1) ^ "," ^ (layoutAux e2) ^")"
         | Fst e => "(fst " ^ (layoutAux e) ^ ")"
         | Snd e => "(snd " ^ (layoutAux e) ^ ")"
         | Ifte (e1, e2, e3) =>
           "(if " ^ (layoutAux e1) ^ " then " ^ (layoutAux e2) ^ " else " ^ (layoutAux e3) ^ ")"
-        | Con c => constToString c
+        | Con c => Const.layout c
         | App (e1, e2) => "("^ (layoutAux e1) ^ " " ^ (layoutAux e2) ^ ")"
-        | Abs (id, _, e) => "(fn " ^ (idToString id) ^ " => " ^ (layoutAux e) ^")"
-        | Op (oper, e1, e2) => "(" ^ (layoutAux e1) ^ (operToString oper) ^ (layoutAux e2) ^ ")"
+        | Abs (id, _, e) => "(fn " ^ (Id.layout id) ^ " => " ^ (layoutAux e) ^")"
+        | Op (oper, e1, e2) => "(" ^ (layoutAux e1) ^ (Operator.layout oper) ^ (layoutAux e2) ^ ")"
         | Map (e1, e2) =>
           let
               val s1 = layoutAux e1
@@ -114,4 +110,4 @@ fun layout ast =
 
 end
 
-structure AstSml = SmlAst(Atoms);
+structure SmlAst = SmlAst(Atoms);

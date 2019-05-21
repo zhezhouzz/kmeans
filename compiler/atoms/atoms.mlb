@@ -1,0 +1,10 @@
+local
+  $(SML_LIB)/basis/basis.mlb
+  $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+  id.sml
+  operator.sml
+  type.sml
+  const.sml
+in
+  atoms.sml
+end

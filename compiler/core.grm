@@ -1,5 +1,6 @@
 (*  User declarations section for helper functions *)
-open AstDsl
+open DslAst
+open Atoms
 %%
 (* ML Yacc Declarations *)
 %name Untyped (* tokens signature will be Untyped_TOKENS *)
@@ -48,7 +49,7 @@ open AstDsl
 %nonterm prog of top_level
                | expr of exp
                | non_lam_term of exp
-               | cctype of ctype
+               | cctype of Type.t
                | atom of exp
 (*
   Precedence and associativity are implicit
@@ -60,35 +61,35 @@ open AstDsl
 (* BNF Rules *)
 prog : expr (expr)
 
-expr :  LAM VAR DOT expr (Abs(VAR, unknown, expr))
+expr : LAM VAR DOT expr (Abs(VAR, Type.tyUnknown, expr))
                | LAM LPAREN VAR COLON cctype RPAREN DOT expr (Abs(VAR, cctype, expr))
-               | LAM LPAREN VAR COLON cctype COLON VAR RPAREN DOT expr (AbsAppr(VAR1, cctype, VAR2, expr))
                | non_lam_term (non_lam_term)
-non_lam_term : atom (atom)
-      | MAP atom atom (Map(atom1, atom2))
-      | MAPI atom atom (Mapi(atom1, atom2))
-      | FOLDL atom atom atom (Foldl(atom1, atom2, atom3))
-      | FOLDLI atom atom atom (Foldli(atom1, atom2, atom3))
-      | NTH atom (Nth(atom))
-      | IF expr THEN expr ELSE expr (Ifte (expr1, expr2, expr3))
-      | LOOP atom atom atom (Loop(atom1, atom2, atom3))
-      | non_lam_term atom (App(non_lam_term,atom))
+non_lam_term :
+                 atom (atom)
+               | MAP atom atom (Map(atom1, atom2))
+               | MAPI atom atom (Mapi(atom1, atom2))
+               | FOLDL atom atom atom (Foldl(atom1, atom2, atom3))
+               | FOLDLI atom atom atom (Foldli(atom1, atom2, atom3))
+               | NTH atom (Nth(atom))
+               | IF expr THEN expr ELSE expr (Ifte (expr1, expr2, expr3))
+               | LOOP atom atom atom (Loop(atom1, atom2, atom3))
+               | non_lam_term atom (App(non_lam_term,atom))
 cctype :
-        CINT (cint)
-      | CREAL (creal)
-      | cctype CLIST (clist(cctype))
-      | WILD (unknown)
+        CINT (Type.tyInt)
+      | CREAL (Type.tyReal)
+      | cctype CLIST (Type.tyList(cctype))
+      | WILD (Type.tyUnknown)
 atom :
         VAR (Var(VAR))
       | LPAREN expr RPAREN (expr)
       | LPAREN RPAREN (Unit)
       | expr COMMA expr (Pair(expr1, expr2))
-      | expr ADD expr (Op(add, expr1, expr2))
-      | expr MUL expr (Op(mul, expr1, expr2))
-      | expr DIV expr (Op(divi, expr1, expr2))
-      | expr LES expr (Op(less, expr1, expr2))
-      | expr EQ expr (Op(eq, expr1, expr2))
-      | expr GRE expr (Op(greater, expr1, expr2))
+      | expr ADD expr (Op(Operator.add, expr1, expr2))
+      | expr MUL expr (Op(Operator.mul, expr1, expr2))
+      | expr DIV expr (Op(Operator.divi, expr1, expr2))
+      | expr LES expr (Op(Operator.less, expr1, expr2))
+      | expr EQ expr (Op(Operator.eq, expr1, expr2))
+      | expr GRE expr (Op(Operator.greater, expr1, expr2))
       | FST expr (Fst(expr))
       | SND expr (Snd(expr))
-      | NUMB (Con(constFromString(NUMB)))
+      | NUMB (Con(Const.parse(NUMB)))

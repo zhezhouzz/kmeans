@@ -1,12 +1,12 @@
-(fn (data : normal) =>
+(fn (data : _)  =>
     (fn centroids =>
         (fn centroidsnew =>
-            (print (centroidsToString centroids))
+            (print (centroidsToString centroidsnew))
         )
             (
 loop
-(
-  (fn c =>
+(fn centroids =>
+  ((fn c =>
       (
         mapi
             (fn k =>
@@ -37,8 +37,8 @@ loop
       )
   )
       (map
-           (
-             fst
+           (fn p =>
+             (fst
                  (foldli
                       (fn e =>
                           if ((snd (fst e)) < (snd (snd e)))
@@ -49,12 +49,12 @@ loop
                       )
                       (0, 999999.0)
                       (map (fn e => distance (e, p)) centroids)
-                 )
+                 ))
            ) data
       )
-) centroids 3
+)) centroids 3
             )
     )
-        (centroidGen 2)
+        (centroidGenNum 2)
 )
-    (fromFile ())
+    (fromFileNum 100)

@@ -1,8 +1,8 @@
 structure Parser:sig
   exception ParseError of string * int option * int option
-  val parse : TextIO.instream -> AstDsl.top_level
-  val parseString : string -> AstDsl.top_level
-end = 
+  val parse : TextIO.instream -> DslAst.top_level
+  val parseString : string -> DslAst.top_level
+end =
 struct
 
   exception ParseError of string * int option * int option
@@ -12,19 +12,19 @@ struct
   structure UntypedParser = Join (structure LrParser = LrParser
                                  structure ParserData = UntypedLrVals.ParserData
                                  structure Lex = UntypedLex)
-  fun parse (instream) = 
-    let val grab : int -> string = fn 
-            n => if TextIO.endOfStream instream 
+  fun parse (instream) =
+    let val grab : int -> string = fn
+            n => if TextIO.endOfStream instream
                  then ""
                  else TextIO.inputN (instream,n)
         val handleParseError : string * int * int -> unit = fn
-            (msg,line,col) => 
+            (msg,line,col) =>
             raise ParseError(msg,SOME(line),SOME(col))
         (* Position annotated Token stream *)
         val lexer = UntypedParser.makeLexer grab
         val (ast,_) = UntypedParser.parse
                     (15, lexer, handleParseError,())
-                    handle UntypedParser.ParseError => raise ParseError 
+                    handle UntypedParser.ParseError => raise ParseError
                       ("Unknown Parse Error",NONE,NONE)
         val dummyEOF = UntypedLrVals.Tokens.EOF(0,0)
     in
@@ -32,7 +32,7 @@ struct
       ast
     end
 
-  fun parseString str = 
+  fun parseString str =
     let val sstream = TextIO.openString str
     in
       parse sstream

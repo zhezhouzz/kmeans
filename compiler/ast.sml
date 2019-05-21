@@ -3,16 +3,15 @@ sig
     structure Atoms: ATOMS
 
     datatype exp =
-             Var of Atoms.id
+             Var of Atoms.Id.t
              | Pair of exp * exp
              | Fst of exp
              | Snd of exp
              | Ifte of exp * exp * exp
              | App of exp * exp
-             | Abs of Atoms.id * Atoms.ctype * exp
-             | AbsAppr of Atoms.id * Atoms.ctype * Atoms.id * exp
-             | Con of Atoms.const
-             | Op of Atoms.oper * exp * exp
+             | Abs of Atoms.Id.t * Atoms.Type.t * exp
+             | Con of Atoms.Const.t
+             | Op of Atoms.Operator.t * exp * exp
              | Map of exp * exp
              | Foldl of exp * exp * exp
              | Mapi of exp * exp
@@ -30,16 +29,16 @@ structure Atoms = Atoms
 open Atoms
 
 datatype exp =
-         Var of id
+         Var of Id.t
          | Pair of exp * exp
          | Fst of exp
          | Snd of exp
          | Ifte of exp * exp * exp
          | App of exp * exp
-         | Abs of id * ctype * exp
-         | AbsAppr of id * ctype * id * exp
-         | Con of const
-         | Op of oper * exp * exp
+         | Abs of Id.t * Type.t * exp
+         (* | AbsAppr of id * ctype * id * exp *)
+         | Con of Const.t
+         | Op of Operator.t * exp * exp
          | Map of exp * exp
          | Foldl of exp * exp * exp
          | Mapi of exp * exp
@@ -52,7 +51,7 @@ type top_level = exp
 
 fun layout ast =
       case ast of
-          Var v => idToString v
+          Var v => Id.layout v
         | Pair (e1, e2) =>
           let val s1 = layout e1
               val s2 = layout e2
@@ -63,7 +62,7 @@ fun layout ast =
         | Snd e => "(snd " ^ (layout e) ^ ")"
         | Ifte (e1, e2, e3) =>
           "(if " ^ (layout e1) ^ " then " ^ (layout e2) ^ " else " ^ (layout e3) ^ ")"
-        | Con c => constToString c
+        | Con c => Const.layout c
         | App(e1,e2) =>
           let val s1 = layout e1
               val s2 = layout e2
@@ -73,18 +72,13 @@ fun layout ast =
         | Abs(id, t, e) =>
           let val s = layout e
           in
-              "(fn ("^ (idToString id) ^ " : " ^ (typeToString t) ^ ") => " ^ s ^")"
-          end
-        | AbsAppr(id, t, distr, e) =>
-          let val s = layout e
-          in
-              "(fn ("^ (idToString id) ^ " : " ^ (typeToString t) ^ " : " ^ (idToString distr) ^ ") => " ^ s ^")"
+              "(fn ("^ (Id.layout id) ^ " : " ^ (Type.layout t) ^ ") => " ^ s ^")"
           end
         | Op (oper,e1, e2) =>
           let
               val s1 = layout e1
               val s2 = layout e2
-              val s0 = operToString oper
+              val s0 = Operator.layout oper
           in
               "(" ^ s1 ^ s0 ^ s2 ^ ")"
           end
@@ -135,4 +129,4 @@ fun layout ast =
         | Unit => "()"
 end
 
-structure AstDsl = DslAst(Atoms);
+structure DslAst = DslAst(Atoms);

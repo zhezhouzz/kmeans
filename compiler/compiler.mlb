@@ -1,12 +1,11 @@
 local
   $(SML_LIB)/basis/basis.mlb
   $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
-  atoms.sml
+  atoms/atoms.mlb
   ast.sml
   smlast.sml
   apprast.sml
   fallback.sml
-  appr.sml
   core.grm.sig
   core.grm.sml
   core.lex.sml

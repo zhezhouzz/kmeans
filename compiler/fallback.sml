@@ -8,12 +8,11 @@ end
 
 structure FallBackPass : FALL_BACK_PASS =
 struct
-structure DslAst = AstDsl
-structure SmlAst = AstSml
+structure DslAst = DslAst
+structure SmlAst = SmlAst
 fun pass ast =
     case ast of
-        DslAst.AbsAppr(id, t, distr, e) => SmlAst.Abs (id, t, pass e)
-      | DslAst.Var v => SmlAst.Var v
+        DslAst.Var v => SmlAst.Var v
       | DslAst.Pair (e1, e2) => SmlAst.Pair (pass e1, pass e2)
       | DslAst.Fst e => SmlAst.Fst (pass e)
       | DslAst.Snd e => SmlAst.Snd (pass e)

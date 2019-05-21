@@ -8,9 +8,9 @@ let
                                                     raise Fail "Exiting\n")
     val ast = Parser.parse fileStream
     val smlast = FallBackPass.pass ast
-    val _ = print ((AstSml.layout smlast) ^ "\n")
-    val apprast = ApprPass.pass ast
-    val _ = print ((AstApprSml.layout apprast) ^ "\n")
+    val _ = print ((SmlAst.layout smlast) ^ "\n")
+    (* val apprast = ApprPass.pass ast *)
+    (* val _ = print ((AstApprSml.layout apprast) ^ "\n") *)
 in
     ()
 end;
