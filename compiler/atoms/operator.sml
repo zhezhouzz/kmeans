@@ -1,13 +1,14 @@
 signature OPERATOR =
 sig
-    type t
+    (* type t *)
+    datatype t =
+             Add
+             | Mul
+             | Divi
+             | Less
+             | Eq
+             | Greater
     val ar : t -> int
-    val add : t
-    val mul : t
-    val divi : t
-    val less : t
-    val eq : t
-    val greater : t
     val layout : t -> string
 end
 
@@ -26,12 +27,6 @@ fun ar Add = 2
   | ar Less = 2
   | ar Eq = 2
   | ar Greater = 2
-val add = Add
-val mul = Mul
-val divi = Divi
-val less = Less
-val eq = Eq
-val greater = Greater
 fun layout Add = "+"
   | layout Mul = "*"
   | layout Divi = "/"

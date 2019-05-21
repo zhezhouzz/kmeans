@@ -1,12 +1,12 @@
 signature TYPE =
 sig
-    type t
-    val tyInt : t
-    val tyReal : t
-    val tyList : t -> t
-    val tyArrow : t * t -> t
-    val tyPair : t * t -> t
-    val tyUnknown : t
+    datatype t =
+             TyInt
+             | TyReal
+             | TyList of t
+             | TyArrow of t * t
+             | TyPair of t * t
+             | TyUnknown
     val layout : t -> string
 end
 
@@ -19,12 +19,6 @@ datatype t =
          | TyArrow of t * t
          | TyPair of t * t
          | TyUnknown
-val tyInt = TyInt
-val tyReal = TyReal
-val tyList = TyList
-val tyArrow = TyArrow
-val tyPair = TyPair
-val tyUnknown = TyUnknown
 fun layout ty =
     case ty of
     TyInt => "int"
