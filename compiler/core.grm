@@ -39,6 +39,7 @@ open Atoms
       | CINT
       | CREAL
       | CLIST
+      | ARROW
       | WILD
       | IF
       | ELSE
@@ -75,10 +76,13 @@ non_lam_term :
                | LOOP atom atom atom (Loop(atom1, atom2, atom3))
                | non_lam_term atom (App(non_lam_term,atom))
 cctype :
-        CINT (Type.TyInt)
-      | CREAL (Type.TyReal)
-      | cctype CLIST (Type.TyList(cctype))
-      | WILD (Type.TyUnknown)
+                 CINT (Type.TyInt)
+               | CREAL (Type.TyReal)
+               | LPAREN cctype RPAREN (cctype)
+               | cctype ARROW cctype (Type.TyArrow(cctype1, cctype2))
+               | cctype COMMA cctype (Type.TyPair(cctype1, cctype2))
+               | cctype CLIST (Type.TyList(cctype))
+               | WILD (Type.TyUnknown)
 atom :
         VAR (Var(VAR))
       | LPAREN expr RPAREN (expr)

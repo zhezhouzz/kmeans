@@ -57,7 +57,7 @@ fun layoutAux ast =
           "(if " ^ (layoutAux e1) ^ " then " ^ (layoutAux e2) ^ " else " ^ (layoutAux e3) ^ ")"
         | Con c => Const.layout c
         | App (e1, e2) => "("^ (layoutAux e1) ^ " " ^ (layoutAux e2) ^ ")"
-        | Abs (id, _, e) => "(fn " ^ (Id.layout id) ^ " => " ^ (layoutAux e) ^")"
+        | Abs (id, ty, e) => "(fn " ^ (Id.layout id) ^ " : " ^ (Type.layout ty) ^ " => " ^ (layoutAux e) ^")"
         | Op (oper, e1, e2) => "(" ^ (layoutAux e1) ^ (Operator.layout oper) ^ (layoutAux e2) ^ ")"
         | Map (e1, e2) =>
           let

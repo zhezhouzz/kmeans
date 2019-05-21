@@ -28,6 +28,7 @@ ws=[\ \t];
 <INITIAL>{eol} => (line := (!line)+1; lex());
 <INITIAL>{ws}+ => (debug "whitespace"; lex());
 <INITIAL>("=>") => (debug "dot\n"; Tokens.DOT(!line,yypos));
+<INITIAL>("->") => (debug "arrow\n"; Tokens.ARROW(!line,yypos));
 <INITIAL>("fn") => (debug "lam\n";Tokens.LAM(!line,yypos));
 <INITIAL>("if") => (debug "lam\n";Tokens.IF(!line,yypos));
 <INITIAL>("then") => (debug "lam\n";Tokens.THEN(!line,yypos));
