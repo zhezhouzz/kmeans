@@ -1,5 +1,0 @@
-$(SML_LIB)/basis/basis.mlb
-$(SML_LIB)/basis/mlton.mlb
-lib/lib.mlb
-appr/apprlist.mlb
-source_code/target.sml

@@ -7,9 +7,9 @@ local
   apprast.sml
   fallback.sml
   appr.sml
-  untyped.grm.sig
-  untyped.grm.sml
-  untyped.lex.sml
+  core.grm.sig
+  core.grm.sml
+  core.lex.sml
   parser.sml
 in
   main.sml

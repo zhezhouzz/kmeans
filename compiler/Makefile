@@ -1,13 +1,13 @@
 all:lex yacc parser
 
-lex:untyped.lex
-	mllex untyped.lex
+lex:core.lex
+	mllex core.lex
 
-yacc:untyped.grm
-	mlyacc untyped.grm
+yacc:core.grm
+	mlyacc core.grm
 
 parser:
 	mlton -output compiler compiler.mlb
 
 clean:
-	rm untyped.lex.sml untyped.grm.sml untyped.grm.sig untyped.grm.desc compiler
+	rm core.lex.sml core.grm.sml core.grm.sig core.grm.desc compiler
