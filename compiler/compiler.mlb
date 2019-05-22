@@ -5,7 +5,9 @@ local
   ast.sml
   smlast.sml
   apprast.sml
+  typedast.sml
   fallback.sml
+  type_inf.sml
   core.grm.sig
   core.grm.sml
   core.lex.sml

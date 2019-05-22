@@ -7,8 +7,9 @@ let
                                                    (TextIO.print ("Can't open "^fileName^".\n");
                                                     raise Fail "Exiting\n")
     val ast = Parser.parse fileStream
-    val smlast = FallBackPass.pass ast
-    val _ = print ((SmlAst.layout smlast) ^ "\n")
+    (* val smlast = FallBackPass.pass ast *)
+    (* val _ = print ((SmlAst.layout smlast) ^ "\n") *)
+    val _ = TypeInference.constraints ast
     (* val apprast = ApprPass.pass ast *)
     (* val _ = print ((AstApprSml.layout apprast) ^ "\n") *)
 in
