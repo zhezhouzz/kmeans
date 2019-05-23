@@ -30,6 +30,8 @@ sig
              | Unit of tmptype
     type top_level = exp
     val tmptypeLayout : tmptype -> string
+    val tmptypeEq : (tmptype * tmptype) -> bool
+    val tmptypeFVIn : tmptype -> int -> bool
     val layout : top_level -> string
 end
 
@@ -72,6 +74,25 @@ fun tmptypeLayout (TmpVar i) = "T" ^ (Int.toString i)
   | tmptypeLayout (TmpProduct (t1, t2)) = "(" ^ (tmptypeLayout t1) ^ " * " ^ (tmptypeLayout t2) ^ ")"
   | tmptypeLayout (TmpArrow (t1, t2)) = "(" ^ (tmptypeLayout t1) ^ " -> " ^ (tmptypeLayout t2) ^ ")"
   | tmptypeLayout (TmpList t) = "(" ^ (tmptypeLayout t) ^ " list) "
+
+fun tmptypeEq (TmpVar i, TmpVar j) = (i = j)
+  | tmptypeEq (TmpInt, TmpInt)  = true
+  | tmptypeEq (TmpReal, TmpReal)  = true
+  | tmptypeEq (TmpUnit, TmpUnit)  = true
+  | tmptypeEq (TmpProduct (t11, t12), TmpProduct (t21, t22)) =
+    (tmptypeEq (t11, t21)) andalso (tmptypeEq (t12, t22))
+  | tmptypeEq (TmpArrow (t11, t12), TmpArrow (t21, t22)) =
+    (tmptypeEq (t11, t21)) andalso (tmptypeEq (t12, t22))
+  | tmptypeEq (TmpList t1, TmpList t2) = tmptypeEq (t1, t2)
+  | tmptypeEq _ = false
+
+fun tmptypeFV (TmpVar i) = [i]
+  | tmptypeFV (TmpProduct (t1, t2)) = (tmptypeFV t1) @ (tmptypeFV t2)
+  | tmptypeFV (TmpArrow (t1, t2)) = (tmptypeFV t1) @ (tmptypeFV t2)
+  | tmptypeFV (TmpList t) = tmptypeFV t
+  | tmptypeFV _ = []
+
+fun tmptypeFVIn t i = List.exists (fn e => e = i) (tmptypeFV t)
 
 fun layout exp =
     case exp of

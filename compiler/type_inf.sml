@@ -5,9 +5,10 @@ fun init () = ref 0
 fun cur c = !c
 fun next c =
     let
+        val n = !c
         val _ = c := (!c + 1)
     in
-        !c
+        n
     end
 end
 
@@ -243,13 +244,131 @@ fun getConstraints counter ast =
         end
       | Unit t => []
 
-fun constraints ast =
+fun unificateType t table =
+    case t of
+        TmpVar i =>
+        (case Array.sub (table, i) of
+             TmpVar j =>
+             if i = j
+             then TmpVar i
+             else if j > i
+             then raise Fail "BAD type unification."
+             else unificateType (TmpVar j) table
+           | x => unificateType x table)
+      | TmpInt => TmpInt
+      | TmpReal => TmpReal
+      | TmpUnit => TmpUnit
+      | TmpProduct (t1, t2) =>
+        TmpProduct (unificateType t1 table, unificateType t2 table)
+      | TmpArrow (t1, t2) =>
+        TmpArrow (unificateType t1 table, unificateType t2 table)
+      | TmpList t => TmpList (unificateType t table)
+
+fun constraintsSolver cons n =
+    let
+        val table = Array.tabulate (n, fn i => TmpVar i)
+        fun solveOne (t1, t2) =
+            let
+                val (t1, t2) = (unificateType t1 table, unificateType t2 table)
+            in
+                if tmptypeEq (t1, t2) then [] else
+                case (t1, t2) of
+                    (TmpVar i, TmpVar j) =>
+                    if i < j then
+                        (Array.update (table, j, (Array.sub (table, i))); [])
+                    else
+                        (Array.update (table, i, (Array.sub (table, j))); [])
+                  | (TmpVar i, _) =>
+                    if tmptypeFVIn t2 i
+                    then
+                        raise Fail ("Can't resolve constraint: " ^ (constraintLayout (t1, t2)))
+                    else
+                        (Array.update (table, i, t2); [])
+                  | (_, TmpVar j) =>
+                    if tmptypeFVIn t1 j
+                    then
+                        raise Fail ("Can't resolve constraint: " ^ (constraintLayout (t1, t2)))
+                    else
+                        (Array.update (table, j, t1); [])
+                  | (TmpInt, TmpInt) => []
+                  | (TmpReal, TmpReal) => []
+                  | (TmpUnit, TmpUnit) => []
+                  | (TmpProduct (t11, t12), TmpProduct (t21, t22)) => [(t11, t21), (t12, t22)]
+                  | (TmpArrow (t11, t12), TmpArrow (t21, t22)) => [(t11, t21), (t12, t22)]
+                  | (TmpList t1, TmpList t2) => [(t1, t2)]
+                  | _ => raise Fail ("Can't resolve constraint: " ^ (constraintLayout (t1, t2)))
+            end
+        fun pass cons =
+            List.foldl (fn (e, r) =>
+                           r @ (solveOne e)
+                       ) [] cons
+        fun aux cons =
+            case cons of
+                [] => ()
+              | _ => aux (pass cons)
+        val _ = aux cons
+    in
+        table
+    end
+
+fun unificateTable table =
+    Array.foldli (fn (i, t, _) => Array.update (table, i, unificateType t table)) () table
+
+fun unificateAst ast table =
+    case ast of
+    Var (t, id) => Var (unificateType t table, id)
+  | Pair (t, e1, e2) => Pair (unificateType t table, unificateAst e1 table, unificateAst e2 table)
+  | Fst (t, e) => Fst (unificateType t table, unificateAst e table)
+  | Snd (t, e) => Snd (unificateType t table, unificateAst e table)
+  | Ifte (t, e1, e2, e3) =>
+    Ifte (unificateType t table,
+          unificateAst e1 table,
+          unificateAst e2 table,
+          unificateAst e3 table)
+  | Con (t, c) => Con (unificateType t table, c)
+  | App(t, e1, e2) => App (unificateType t table, unificateAst e1 table, unificateAst e2 table)
+  | Abs(t, id, tDsl, e) => Abs (unificateType t table, id, tDsl, unificateAst e table)
+  | Op (t, oper, e1, e2) => Op (unificateType t table, oper, unificateAst e1 table, unificateAst e2 table)
+  | Map (t, e1, e2) => Map (unificateType t table, unificateAst e1 table, unificateAst e2 table)
+  | Foldl (t, e1, e2, e3) =>
+    Foldl (unificateType t table,
+           unificateAst e1 table,
+           unificateAst e2 table,
+           unificateAst e3 table)
+  | Mapi (t, e1, e2) => Mapi (unificateType t table, unificateAst e1 table, unificateAst e2 table)
+  | Foldli (t, e1, e2, e3) =>
+    Foldli (unificateType t table,
+            unificateAst e1 table,
+            unificateAst e2 table,
+            unificateAst e3 table)
+  | Nth (t, e) => Nth (unificateType t table, unificateAst e table)
+  | Loop (t, e1, e2, e3) =>
+    Loop (unificateType t table,
+          unificateAst e1 table,
+          unificateAst e2 table,
+          unificateAst e3 table)
+  | Unit t => Unit (unificateType t table)
+
+fun tableLayout table =
+    Array.foldli (fn (i, t, r) =>
+                     r ^ "\n" ^ (constraintLayout (TmpVar i, t))
+                 ) "" table
+
+fun inference ast =
     let
         val c = Counter.init ()
         val ast = addType c ast
         val _ = print ((TypedAst.layout ast) ^ "\n")
         val cons = getConstraints c ast
-        val _ = print (constraintsLayout cons)
+        (* val _ = print ((constraintsLayout cons) ^ "\n") *)
+        val n = Counter.cur c
+        (* val _ = print (" n = " ^ (Int.toString n) ^ "\n") *)
+        val table = constraintsSolver cons n
+        (* val _ = print ((tableLayout table) ^ "\n") *)
+        val _ = unificateTable table
+        (* val _ = print ((tableLayout table) ^ "\n") *)
+        val ast = unificateAst ast table
+        val _ = print ((TypedAst.layout ast) ^ "\n")
     in
         ()
     end

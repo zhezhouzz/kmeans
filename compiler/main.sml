@@ -9,7 +9,7 @@ let
     val ast = Parser.parse fileStream
     (* val smlast = FallBackPass.pass ast *)
     (* val _ = print ((SmlAst.layout smlast) ^ "\n") *)
-    val _ = TypeInference.constraints ast
+    val _ = TypeInference.inference ast
     (* val apprast = ApprPass.pass ast *)
     (* val _ = print ((AstApprSml.layout apprast) ^ "\n") *)
 in
