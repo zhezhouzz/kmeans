@@ -16,9 +16,11 @@ sig
              | Foldl of exp * exp * exp
              | Mapi of exp * exp
              | Foldli of exp * exp * exp
-             | Nth of exp
+             | Nth of exp * exp
              | Loop of exp * exp * exp
-           | Unit
+             | True
+             | False
+             | Unit
     type top_level = exp
     val layout : top_level -> string
 end
@@ -41,9 +43,11 @@ datatype exp =
          | Foldl of exp * exp * exp
          | Mapi of exp * exp
          | Foldli of exp * exp * exp
-         | Nth of exp
+         | Nth of exp * exp
          | Loop of exp * exp * exp
-       | Unit
+         | True
+         | False
+         | Unit
 
 type top_level = exp
 
@@ -89,11 +93,12 @@ fun layoutAux ast =
           in
               "(ExtendedList.foldli " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
           end
-        | Nth (e1) =>
+        | Nth (e1, e2) =>
           let
               val s1 = layoutAux e1
+              val s2 = layoutAux e2
           in
-              "(ExtendedList.nth " ^ s1  ^ ")"
+              "(ExtendedList.nth (" ^ s1 ^ ", " ^ s2 ^ "))"
           end
         | Loop (e1, e2, e3) =>
           let
@@ -104,6 +109,8 @@ fun layoutAux ast =
               "(loop " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
           end
         | Unit => "()"
+        | True => "true"
+        | False => "false"
 
 fun layout ast =
     "val _ = " ^ (layoutAux ast) ^ ";\n"

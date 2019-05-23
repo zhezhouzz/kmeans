@@ -17,9 +17,11 @@ sig
              | Foldl of exp * exp * exp
              | Mapi of exp * exp
              | Foldli of exp * exp * exp
-             | Nth of exp
+             | Nth of exp * exp
              | Loop of exp * exp * exp
-           | Unit
+             | True
+             | False
+             | Unit
     type top_level = exp
     val layout : top_level -> string
 end
@@ -38,17 +40,17 @@ datatype exp =
          | Ifte of exp * exp * exp
          | App of exp * exp
          | Abs of Id.t * Type.t * exp
-         (* | AbsAppr of id * ctype * id * exp *)
          | Con of Const.t
          | Op of Operator.t * exp * exp
          | Map of exp * exp
          | Foldl of exp * exp * exp
          | Mapi of exp * exp
          | Foldli of exp * exp * exp
-         | Nth of exp
+         | Nth of exp * exp
          | Loop of exp * exp * exp
-       | Unit
-
+         | True
+         | False
+         | Unit
 type top_level = exp
 
 fun layout ast =
@@ -115,11 +117,12 @@ fun layout ast =
           in
               "(foldli " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
           end
-        | Nth (e1) =>
+        | Nth (e1, e2) =>
           let
               val s1 = layout e1
+              val s2 = layout e2
           in
-              "(nth " ^ s1 ^ ")"
+              "(nth " ^ s1 ^ " " ^ s2 ^ ")"
           end
         | Loop (e1, e2, e3) =>
           let
@@ -130,6 +133,8 @@ fun layout ast =
               "(loop " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
           end
         | Unit => "()"
+        | True => "true"
+        | False => "false"
 end
 
 structure DslAst = DslAst(Atoms);

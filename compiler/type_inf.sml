@@ -31,6 +31,7 @@ fun dslTypeToTmpType t =
     case t of
         Type.TyInt => SOME TmpInt
       | Type.TyReal => SOME TmpReal
+      | Type.TyBool => SOME TmpBool
       | Type.TyList t =>
         (case dslTypeToTmpType t of
              NONE => NONE
@@ -70,9 +71,11 @@ fun addType counter ast =
       | DslAst.Foldl (e1, e2, e3) => Foldl (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
       | DslAst.Mapi (e1, e2) => Mapi (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
       | DslAst.Foldli (e1, e2, e3) => Foldli (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
-      | DslAst.Nth e => Nth (TmpVar (Counter.next counter), addType counter e)
+      | DslAst.Nth (e1, e2) => Nth (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
       | DslAst.Loop (e1, e2, e3) => Loop (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
       | DslAst.Unit => Unit TmpUnit
+      | DslAst.True => True TmpBool
+      | DslAst.False => False TmpBool
 
 fun getType exp =
     case exp of
@@ -90,9 +93,11 @@ fun getType exp =
       | Foldl (t, e1, e2, e3) => t
       | Mapi (t, e1, e2) => t
       | Foldli (t, e1, e2, e3) => t
-      | Nth (t, e) => t
+      | Nth (t, e1, e2) => t
       | Loop (t, e1, e2, e3) => t
       | Unit t => t
+      | True t => t
+      | False t => t
 
 type constraint = tmptype * tmptype
 
@@ -133,7 +138,7 @@ fun substConstraints idx ty exp =
       | Foldl (t, e1, e2, e3) => (substConstraints idx ty e1) @ (substConstraints idx ty e2) @ (substConstraints idx ty e3)
       | Mapi (t, e1, e2) => (substConstraints idx ty e1) @ (substConstraints idx ty e2)
       | Foldli (t, e1, e2, e3) => (substConstraints idx ty e1) @ (substConstraints idx ty e2) @ (substConstraints idx ty e3)
-      | Nth (t, e) => (substConstraints idx ty e)
+      | Nth (t, e1, e2) => (substConstraints idx ty e1) @ (substConstraints idx ty e2)
       | Loop (t, e1, e2, e3) => (substConstraints idx ty e1) @ (substConstraints idx ty e2) @ (substConstraints idx ty e3)
       | _ => []
 
@@ -141,7 +146,10 @@ fun getConstraints counter ast =
     case ast of
         Var (t, id) => []
       | ImportedVar (t, id, tDsl) => []
-      | Pair (t, e1, e2) => (t, TmpProduct (getType e1, getType e2)) :: (getConstraints counter e1) @ (getConstraints counter e2)
+      | Pair (t, e1, e2) =>
+        [(t, TmpProduct (getType e1, getType e2))] @
+        (getConstraints counter e1) @
+        (getConstraints counter e2)
       | Fst (t, e) =>
         let
             val t' = getType e
@@ -157,12 +165,13 @@ fun getConstraints counter ast =
             (t', TmpProduct (t1, t)) :: (getConstraints counter e)
         end
       | Ifte (t, e1, e2, e3) =>
-        [(t, getType e1), (t, getType e2), (t, getType e3)] @
+        [(getType e1, TmpBool), (getType e2, getType e3), (t, getType e3)] @
         (getConstraints counter e1) @
         (getConstraints counter e2) @
         (getConstraints counter e3)
       | Con (t, c) => []
-      | App(t, e1, e2) => (t, TmpArrow (getType e1, getType e2)) :: (getConstraints counter e1) @ (getConstraints counter e2)
+      | App(t, e1, e2) =>
+        (getType e1, TmpArrow (getType e2, t)) :: (getConstraints counter e1) @ (getConstraints counter e2)
       | Abs(t, id, tDsl, e) =>
         let
             val spec =
@@ -178,9 +187,18 @@ fun getConstraints counter ast =
             (TmpArrow (spec, getType e), t) :: cons1 @ cons2
         end
       | Op (t, oper, e1, e2) =>
-        [(t, getType e1), (t, getType e2)] @
-        (getConstraints counter e1) @
-        (getConstraints counter e2)
+        let
+            val cons =
+                case oper of
+                    Operator.Add => [(t, getType e1), (t, getType e2)]
+                  | Operator.Mul => [(t, getType e1), (t, getType e2)]
+                  | Operator.Divi => [(t, getType e1), (t, getType e2)]
+                  | Operator.Less => [(t, TmpBool), (getType e1, getType e2)]
+                  | Operator.Eq => [(t, TmpBool), (getType e1, getType e2)]
+                  | Operator.Greater => [(t, TmpBool), (getType e1, getType e2)]
+        in
+            cons @ (getConstraints counter e1) @ (getConstraints counter e2)
+        end
       | Map (t, e1, e2) =>
         let
             val tyA = TmpVar (Counter.next counter)
@@ -233,20 +251,23 @@ fun getConstraints counter ast =
             (getConstraints counter e2) @
             (getConstraints counter e3)
         end
-      | Nth (t, e) =>
+      | Nth (t, e1, e2) =>
         let
             val tyA = TmpVar (Counter.next counter)
             val ty1 = TmpList tyA
+            val ty2 = TmpInt
             val ty0 = tyA
         in
-            [(ty1, getType e), (t, ty0)] @ (getConstraints counter e)
+            [(ty1, getType e1), (ty2, getType e2), (t, ty0)] @
+            (getConstraints counter e1) @
+            (getConstraints counter e2)
         end
       | Loop (t, e1, e2, e3) =>
         let
             val tyA = TmpVar (Counter.next counter)
             val ty1 = TmpArrow (tyA, tyA)
-            val ty2 = TmpInt
-            val ty3 = tyA
+            val ty2 = tyA
+            val ty3 = TmpInt
             val ty0 = tyA
         in
             [(ty1, getType e1), (ty2, getType e2), (ty3, getType e3), (t, ty0)] @
@@ -255,6 +276,8 @@ fun getConstraints counter ast =
             (getConstraints counter e3)
         end
       | Unit t => []
+      | True t => []
+      | False t => []
 
 fun unificateType t table =
     case t of
@@ -270,6 +293,7 @@ fun unificateType t table =
       | TmpInt => TmpInt
       | TmpReal => TmpReal
       | TmpUnit => TmpUnit
+      | TmpBool => TmpBool
       | TmpProduct (t1, t2) =>
         TmpProduct (unificateType t1 table, unificateType t2 table)
       | TmpArrow (t1, t2) =>
@@ -305,6 +329,7 @@ fun constraintsSolver cons n =
                   | (TmpInt, TmpInt) => []
                   | (TmpReal, TmpReal) => []
                   | (TmpUnit, TmpUnit) => []
+                  | (TmpBool, TmpBool) => []
                   | (TmpProduct (t11, t12), TmpProduct (t21, t22)) => [(t11, t21), (t12, t22)]
                   | (TmpArrow (t11, t12), TmpArrow (t21, t22)) => [(t11, t21), (t12, t22)]
                   | (TmpList t1, TmpList t2) => [(t1, t2)]
@@ -354,13 +379,15 @@ fun unificateAst ast table =
                 unificateAst e1 table,
                 unificateAst e2 table,
                 unificateAst e3 table)
-      | Nth (t, e) => Nth (unificateType t table, unificateAst e table)
+      | Nth (t, e1, e2) => Nth (unificateType t table, unificateAst e1 table, unificateAst e2 table)
       | Loop (t, e1, e2, e3) =>
         Loop (unificateType t table,
               unificateAst e1 table,
               unificateAst e2 table,
               unificateAst e3 table)
       | Unit t => Unit (unificateType t table)
+      | True t => True (unificateType t table)
+      | False t => False (unificateType t table)
 
 fun tableLayout table =
     Array.foldli (fn (i, t, r) =>

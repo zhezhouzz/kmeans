@@ -38,12 +38,15 @@ open Atoms
       | GRE
       | CINT
       | CREAL
+      | CBOOL
       | CLIST
       | ARROW
       | WILD
       | IF
       | ELSE
       | THEN
+      | TRUE
+      | FALSE
       | FST
       | SND
    | EOF
@@ -71,16 +74,17 @@ non_lam_term :
                | MAPI atom atom (Mapi(atom1, atom2))
                | FOLDL atom atom atom (Foldl(atom1, atom2, atom3))
                | FOLDLI atom atom atom (Foldli(atom1, atom2, atom3))
-               | NTH atom (Nth(atom))
+               | NTH atom atom (Nth(atom1, atom2))
                | IF expr THEN expr ELSE expr (Ifte (expr1, expr2, expr3))
                | LOOP atom atom atom (Loop(atom1, atom2, atom3))
                | non_lam_term atom (App(non_lam_term,atom))
 cctype :
                  CINT (Type.TyInt)
                | CREAL (Type.TyReal)
+               | CBOOL (Type.TyBool)
                | LPAREN cctype RPAREN (cctype)
                | cctype ARROW cctype (Type.TyArrow(cctype1, cctype2))
-               | cctype COMMA cctype (Type.TyPair(cctype1, cctype2))
+               | cctype MUL cctype (Type.TyPair(cctype1, cctype2))
                | cctype CLIST (Type.TyList(cctype))
                | WILD (Type.TyUnknown)
 atom :
@@ -88,6 +92,8 @@ atom :
                | VAR COLON cctype (ImportedVar(VAR, cctype))
                | LPAREN expr RPAREN (expr)
                | LPAREN RPAREN (Unit)
+               | TRUE (True)
+               | FALSE (False)
                | expr COMMA expr (Pair(expr1, expr2))
                | expr ADD expr (Op(Operator.Add, expr1, expr2))
                | expr MUL expr (Op(Operator.Mul, expr1, expr2))

@@ -1,0 +1,7 @@
+(fn t =>
+                      (
+                        (fn numr => (((fst (fst t)) / numr), ((snd (fst t)) / numr)))
+                            ((Real.fromInt: real -> int) (snd t))
+                      )
+                  )
+

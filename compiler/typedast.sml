@@ -7,6 +7,7 @@ sig
              | TmpInt
              | TmpReal
              | TmpUnit
+             | TmpBool
              | TmpProduct of tmptype * tmptype
              | TmpArrow of tmptype * tmptype
              | TmpList of tmptype
@@ -26,9 +27,11 @@ sig
              | Foldl of tmptype * exp * exp * exp
              | Mapi of tmptype * exp * exp
              | Foldli of tmptype * exp * exp * exp
-             | Nth of tmptype * exp
+             | Nth of tmptype * exp * exp
              | Loop of tmptype * exp * exp * exp
              | Unit of tmptype
+             | True of tmptype
+             | False of tmptype
     type top_level = exp
     val tmptypeLayout : tmptype -> string
     val tmptypeEq : (tmptype * tmptype) -> bool
@@ -44,6 +47,7 @@ datatype tmptype =
          | TmpInt
          | TmpReal
          | TmpUnit
+         | TmpBool
          | TmpProduct of tmptype * tmptype
          | TmpArrow of tmptype * tmptype
          | TmpList of tmptype
@@ -63,9 +67,11 @@ datatype exp =
          | Foldl of tmptype * exp * exp * exp
          | Mapi of tmptype * exp * exp
          | Foldli of tmptype * exp * exp * exp
-         | Nth of tmptype * exp
+         | Nth of tmptype * exp * exp
          | Loop of tmptype * exp * exp * exp
          | Unit of tmptype
+         | True of tmptype
+         | False of tmptype
 
 type top_level = exp
 open Atoms
@@ -73,6 +79,7 @@ fun tmptypeLayout (TmpVar i) = "T" ^ (Int.toString i)
   | tmptypeLayout TmpInt = "int"
   | tmptypeLayout TmpReal = "real"
   | tmptypeLayout TmpUnit = "unit"
+  | tmptypeLayout TmpBool = "bool"
   | tmptypeLayout (TmpProduct (t1, t2)) = "(" ^ (tmptypeLayout t1) ^ " * " ^ (tmptypeLayout t2) ^ ")"
   | tmptypeLayout (TmpArrow (t1, t2)) = "(" ^ (tmptypeLayout t1) ^ " -> " ^ (tmptypeLayout t2) ^ ")"
   | tmptypeLayout (TmpList t) = "(" ^ (tmptypeLayout t) ^ " list) "
@@ -81,6 +88,7 @@ fun tmptypeEq (TmpVar i, TmpVar j) = (i = j)
   | tmptypeEq (TmpInt, TmpInt)  = true
   | tmptypeEq (TmpReal, TmpReal)  = true
   | tmptypeEq (TmpUnit, TmpUnit)  = true
+  | tmptypeEq (TmpBool, TmpBool)  = true
   | tmptypeEq (TmpProduct (t11, t12), TmpProduct (t21, t22)) =
     (tmptypeEq (t11, t21)) andalso (tmptypeEq (t12, t22))
   | tmptypeEq (TmpArrow (t11, t12), TmpArrow (t21, t22)) =
@@ -112,9 +120,11 @@ fun layout exp =
       | Foldl (t, e1, e2, e3) => "(" ^ "foldl " ^ (layout e1) ^ " " ^ (layout e2) ^ " " ^ (layout e3) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Mapi (t, e1, e2) => "(" ^ "mapi " ^ (layout e1) ^ " " ^ (layout e2) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Foldli (t, e1, e2, e3) => "(" ^ "foldli " ^ (layout e1) ^ " " ^ (layout e2) ^ " " ^ (layout e3) ^ " : " ^ (tmptypeLayout t) ^ ")"
-      | Nth (t, e) => "(" ^ "nth " ^ (layout e)  ^ " : " ^ (tmptypeLayout t) ^ ")"
+      | Nth (t, e1, e2) => "(" ^ "nth " ^ (layout e1) ^ " " ^ (layout e2) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Loop (t, e1, e2, e3) => "(" ^ "loop " ^ (layout e1) ^ " " ^ (layout e2) ^ " " ^ (layout e3) ^ " : " ^ (tmptypeLayout t) ^ ")"
-      | Unit t => "(" ^ "() : " ^ (tmptypeLayout t) ^ ")"
+      | Unit t => "(" ^"() : " ^ (tmptypeLayout t) ^ ")"
+      | True t => "(" ^ "true : " ^ (tmptypeLayout t) ^ ")"
+      | False t => "(" ^ "false : " ^ (tmptypeLayout t) ^ ")"
 end
 
 structure TypedAst = TypedAst(Atoms);

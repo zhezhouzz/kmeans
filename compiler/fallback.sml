@@ -26,7 +26,9 @@ fun pass ast =
      | DslAst.Foldl (e1, e2, e3) => SmlAst.Foldl (pass e1, pass e2, pass e3)
      | DslAst.Mapi (e1, e2) => SmlAst.Mapi (pass e1, pass e2)
      | DslAst.Foldli (e1, e2, e3) => SmlAst.Foldli (pass e1, pass e2, pass e3)
-     | DslAst.Nth (e) => SmlAst.Nth (pass e)
+     | DslAst.Nth (e1, e2) => SmlAst.Nth (pass e1, pass e2)
      | DslAst.Loop (e1, e2, e3) => SmlAst.Loop (pass e1, pass e2, pass e3)
      | DslAst.Unit => SmlAst.Unit
+     | DslAst.True => SmlAst.True
+     | DslAst.False => SmlAst.False
 end
