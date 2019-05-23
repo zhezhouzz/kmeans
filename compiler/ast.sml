@@ -4,6 +4,7 @@ sig
 
     datatype exp =
              Var of Atoms.Id.t
+             | ImportedVar of Atoms.Id.t * Atoms.Type.t
              | Pair of exp * exp
              | Fst of exp
              | Snd of exp
@@ -30,6 +31,7 @@ open Atoms
 
 datatype exp =
          Var of Id.t
+         | ImportedVar of Id.t * Type.t
          | Pair of exp * exp
          | Fst of exp
          | Snd of exp
@@ -52,6 +54,7 @@ type top_level = exp
 fun layout ast =
       case ast of
           Var v => Id.layout v
+        | ImportedVar (v, _) => Id.layout v
         | Pair (e1, e2) =>
           let val s1 = layout e1
               val s2 = layout e2

@@ -4,7 +4,6 @@ local
   atoms/atoms.mlb
   ast.sml
   smlast.sml
-  apprast.sml
   typedast.sml
   fallback.sml
   type_inf.sml

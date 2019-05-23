@@ -13,6 +13,7 @@ sig
 
     datatype exp =
              Var of tmptype * Atoms.Id.t
+             | ImportedVar of tmptype * Atoms.Id.t * Atoms.Type.t
              | Pair of tmptype * exp * exp
              | Fst of tmptype * exp
              | Snd of tmptype * exp
@@ -49,6 +50,7 @@ datatype tmptype =
 
 datatype exp =
          Var of tmptype * Atoms.Id.t
+         | ImportedVar of tmptype * Atoms.Id.t * Atoms.Type.t
          | Pair of tmptype * exp * exp
          | Fst of tmptype * exp
          | Snd of tmptype * exp
@@ -97,13 +99,14 @@ fun tmptypeFVIn t i = List.exists (fn e => e = i) (tmptypeFV t)
 fun layout exp =
     case exp of
         Var (t, id) => "(" ^ (Id.layout id) ^ " : " ^ (tmptypeLayout t) ^ ")"
+      | ImportedVar (t, id, tDsl) => "({" ^ (Id.layout id) ^ " : " ^ (Type.layout tDsl) ^ "}" ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Pair (t, e1, e2) => "(" ^ (layout e1) ^ "," ^ (layout e2) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Fst (t, e) => "(" ^ "fst " ^ (layout e) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Snd (t, e) => "(" ^ "snd " ^ (layout e) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Ifte (t, e1, e2, e3) => "(" ^ "if " ^ (layout e1) ^ " then " ^ (layout e2) ^ " else " ^ (layout e3) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Con (t, c) => "(" ^ (Const.layout c) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | App(t, e1, e2) => "(" ^ "(" ^ (layout e1) ^ " " ^ (layout e2) ^ ")" ^ " : " ^ (tmptypeLayout t) ^ ")"
-      | Abs(t, id, tDsl, e) => "(" ^ "(fn ("^ (Id.layout id) ^ " : " ^ (Type.layout tDsl) ^ ") => " ^ (layout e) ^")" ^ " : " ^ (tmptypeLayout t) ^ ")"
+      | Abs(t, id, tDsl, e) => "(" ^ "(fn {"^ (Id.layout id) ^ " : " ^ (Type.layout tDsl) ^ "} => " ^ (layout e) ^")" ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Op (t, oper, e1, e2) => "(" ^ (layout e1) ^ (Operator.layout oper) ^ (layout e2) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Map (t, e1, e2) => "(" ^ "map " ^ (layout e1) ^ " " ^ (layout e2) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Foldl (t, e1, e2, e3) => "(" ^ "foldl " ^ (layout e1) ^ " " ^ (layout e2) ^ " " ^ (layout e3) ^ " : " ^ (tmptypeLayout t) ^ ")"
@@ -112,85 +115,6 @@ fun layout exp =
       | Nth (t, e) => "(" ^ "nth " ^ (layout e)  ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Loop (t, e1, e2, e3) => "(" ^ "loop " ^ (layout e1) ^ " " ^ (layout e2) ^ " " ^ (layout e3) ^ " : " ^ (tmptypeLayout t) ^ ")"
       | Unit t => "(" ^ "() : " ^ (tmptypeLayout t) ^ ")"
-
-(* fun layout ast = *)
-(*       case ast of *)
-(*           Var v => Id.layout v *)
-(*         | Pair (e1, e2) => *)
-(*           let val s1 = layout e1 *)
-(*               val s2 = layout e2 *)
-(*           in *)
-(*               "("^s1^","^s2^")" *)
-(*           end *)
-(*         | Fst e => "(fst " ^ (layout e) ^ ")" *)
-(*         | Snd e => "(snd " ^ (layout e) ^ ")" *)
-(*         | Ifte (e1, e2, e3) => *)
-(*           "(if " ^ (layout e1) ^ " then " ^ (layout e2) ^ " else " ^ (layout e3) ^ ")" *)
-(*         | Con c => Const.layout c *)
-(*         | App(e1,e2) => *)
-(*           let val s1 = layout e1 *)
-(*               val s2 = layout e2 *)
-(*           in *)
-(*               "("^s1^" "^s2^")" *)
-(*           end *)
-(*         | Abs(id, t, e) => *)
-(*           let val s = layout e *)
-(*           in *)
-(*               "(fn ("^ (Id.layout id) ^ " : " ^ (Type.layout t) ^ ") => " ^ s ^")" *)
-(*           end *)
-(*         | Op (oper,e1, e2) => *)
-(*           let *)
-(*               val s1 = layout e1 *)
-(*               val s2 = layout e2 *)
-(*               val s0 = Operator.layout oper *)
-(*           in *)
-(*               "(" ^ s1 ^ s0 ^ s2 ^ ")" *)
-(*           end *)
-(*         | Map (e1, e2) => *)
-(*           let *)
-(*               val s1 = layout e1 *)
-(*               val s2 = layout e2 *)
-(*           in *)
-(*               "(map " ^ s1 ^ " " ^ s2 ^ ")" *)
-(*           end *)
-(*         | Foldl (e1, e2, e3) => *)
-(*           let *)
-(*               val s1 = layout e1 *)
-(*               val s2 = layout e2 *)
-(*               val s3 = layout e3 *)
-(*           in *)
-(*               "(foldl " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")" *)
-(*           end *)
-(*         | Mapi (e1, e2) => *)
-(*           let *)
-(*               val s1 = layout e1 *)
-(*               val s2 = layout e2 *)
-(*           in *)
-(*               "(mapi " ^ s1 ^ " " ^ s2 ^ ")" *)
-(*           end *)
-(*         | Foldli (e1, e2, e3) => *)
-(*           let *)
-(*               val s1 = layout e1 *)
-(*               val s2 = layout e2 *)
-(*               val s3 = layout e3 *)
-(*           in *)
-(*               "(foldli " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")" *)
-(*           end *)
-(*         | Nth (e1) => *)
-(*           let *)
-(*               val s1 = layout e1 *)
-(*           in *)
-(*               "(nth " ^ s1 ^ ")" *)
-(*           end *)
-(*         | Loop (e1, e2, e3) => *)
-(*           let *)
-(*               val s1 = layout e1 *)
-(*               val s2 = layout e2 *)
-(*               val s3 = layout e3 *)
-(*           in *)
-(*               "(loop " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")" *)
-(*           end *)
-(*         | Unit => "()" *)
 end
 
 structure TypedAst = TypedAst(Atoms);

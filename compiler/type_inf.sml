@@ -26,46 +26,73 @@ structure DslAst = DslAst
 structure TypedAst = TypedAst
 open TypedAst
 open Atoms
+
+fun dslTypeToTmpType t =
+    case t of
+        Type.TyInt => SOME TmpInt
+      | Type.TyReal => SOME TmpReal
+      | Type.TyList t =>
+        (case dslTypeToTmpType t of
+             NONE => NONE
+           | SOME t => SOME (TmpList t))
+      | Type.TyArrow (t1, t2) =>
+        (case (dslTypeToTmpType t1, dslTypeToTmpType t2) of
+             (SOME t1, SOME t2) => SOME (TmpArrow (t1, t2))
+           | _ => NONE
+        )
+      | Type.TyPair (t1, t2) =>
+        (case (dslTypeToTmpType t1, dslTypeToTmpType t2) of
+             (SOME t1, SOME t2) => SOME (TmpProduct (t1, t2))
+           | _ => NONE
+        )
+      | Type.TyUnit => SOME TmpUnit
+      | Type.TyUnknown => NONE
+
 fun addType counter ast =
     case ast of
-            DslAst.Var id => Var (TmpVar (Counter.next counter), id)
-          | DslAst.Pair (e1, e2) => Pair (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
-          | DslAst.Fst e => Fst (TmpVar (Counter.next counter), addType counter e)
-          | DslAst.Snd e => Snd (TmpVar (Counter.next counter), addType counter e)
-          | DslAst.Ifte (e1, e2, e3) => Ifte (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
-          | DslAst.Con c =>
-            (case c of
-                 Const.ConstInt _ => Con (TmpInt, c)
-               | Const.ConstReal _ => Con (TmpReal, c))
-          | DslAst.App(e1,e2) => App (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
-          | DslAst.Abs(id, t, e) => Abs (TmpVar (Counter.next counter), id, t, addType counter e)
-          | DslAst.Op (oper, e1, e2) => Op (TmpVar (Counter.next counter), oper, addType counter e1, addType counter e2)
-          | DslAst.Map (e1, e2) => Map (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
-          | DslAst.Foldl (e1, e2, e3) => Foldl (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
-          | DslAst.Mapi (e1, e2) => Mapi (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
-          | DslAst.Foldli (e1, e2, e3) => Foldli (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
-          | DslAst.Nth e => Nth (TmpVar (Counter.next counter), addType counter e)
-          | DslAst.Loop (e1, e2, e3) => Loop (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
-          | DslAst.Unit => Unit TmpUnit
+        DslAst.Var id => Var (TmpVar (Counter.next counter), id)
+      | DslAst.ImportedVar (id, t) =>
+        (case dslTypeToTmpType t of
+             NONE => raise Fail "import variable should be typed!"
+           | SOME t' => ImportedVar (t', id, t))
+      | DslAst.Pair (e1, e2) => Pair (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
+      | DslAst.Fst e => Fst (TmpVar (Counter.next counter), addType counter e)
+      | DslAst.Snd e => Snd (TmpVar (Counter.next counter), addType counter e)
+      | DslAst.Ifte (e1, e2, e3) => Ifte (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
+      | DslAst.Con c =>
+        (case c of
+             Const.ConstInt _ => Con (TmpInt, c)
+           | Const.ConstReal _ => Con (TmpReal, c))
+      | DslAst.App(e1,e2) => App (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
+      | DslAst.Abs(id, t, e) => Abs (TmpVar (Counter.next counter), id, t, addType counter e)
+      | DslAst.Op (oper, e1, e2) => Op (TmpVar (Counter.next counter), oper, addType counter e1, addType counter e2)
+      | DslAst.Map (e1, e2) => Map (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
+      | DslAst.Foldl (e1, e2, e3) => Foldl (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
+      | DslAst.Mapi (e1, e2) => Mapi (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
+      | DslAst.Foldli (e1, e2, e3) => Foldli (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
+      | DslAst.Nth e => Nth (TmpVar (Counter.next counter), addType counter e)
+      | DslAst.Loop (e1, e2, e3) => Loop (TmpVar (Counter.next counter), addType counter e1, addType counter e2, addType counter e3)
+      | DslAst.Unit => Unit TmpUnit
 
 fun getType exp =
     case exp of
         Var (t, id) => t
-     | Pair (t, e1, e2) => t
-     | Fst (t, e) => t
-     | Snd (t, e) => t
-     | Ifte (t, e1, e2, e3) => t
-     | Con (t, c) => t
-     | App(t, e1, e2) => t
-     | Abs(t, id, tDsl, e) => t
-     | Op (t, oper, e1, e2) => t
-     | Map (t, e1, e2) => t
-     | Foldl (t, e1, e2, e3) => t
-     | Mapi (t, e1, e2) => t
-     | Foldli (t, e1, e2, e3) => t
-     | Nth (t, e) => t
-     | Loop (t, e1, e2, e3) => t
-     | Unit t => t
+      | ImportedVar (t, id, tDsl) => t
+      | Pair (t, e1, e2) => t
+      | Fst (t, e) => t
+      | Snd (t, e) => t
+      | Ifte (t, e1, e2, e3) => t
+      | Con (t, c) => t
+      | App(t, e1, e2) => t
+      | Abs(t, id, tDsl, e) => t
+      | Op (t, oper, e1, e2) => t
+      | Map (t, e1, e2) => t
+      | Foldl (t, e1, e2, e3) => t
+      | Mapi (t, e1, e2) => t
+      | Foldli (t, e1, e2, e3) => t
+      | Nth (t, e) => t
+      | Loop (t, e1, e2, e3) => t
+      | Unit t => t
 
 type constraint = tmptype * tmptype
 
@@ -82,6 +109,12 @@ fun substConstraints idx ty exp =
         if Id.beq (id, idx)
         then
             [(ty, t)]
+        else
+            []
+      | ImportedVar (t, id, tDsl) =>
+        if Id.beq (id, idx)
+        then
+            (print "Warning: using the same variable name with an imported variable.\n"; [])
         else
             []
       | Pair (t, e1, e2) => (substConstraints idx ty e1) @ (substConstraints idx ty e2)
@@ -104,31 +137,10 @@ fun substConstraints idx ty exp =
       | Loop (t, e1, e2, e3) => (substConstraints idx ty e1) @ (substConstraints idx ty e2) @ (substConstraints idx ty e3)
       | _ => []
 
-fun dslTypeToTmpType t =
-    case t of
-        Type.TyInt => SOME TmpInt
-      | Type.TyReal => SOME TmpInt
-      | Type.TyList t =>
-        (case dslTypeToTmpType t of
-            NONE => NONE
-          | SOME t => SOME (TmpList t))
-      | Type.TyArrow (t1, t2) =>
-        (case (dslTypeToTmpType t1, dslTypeToTmpType t2) of
-             (SOME t1, SOME t2) => SOME (TmpArrow (t1, t2))
-          | _ => NONE
-        )
-      | Type.TyPair (t1, t2) =>
-        (case (dslTypeToTmpType t1, dslTypeToTmpType t2) of
-             (SOME t1, SOME t2) => SOME (TmpProduct (t1, t2))
-           | _ => NONE
-        )
-      | Type.TyUnit => SOME TmpUnit
-      | Type.TyUnknown => NONE
-
-
 fun getConstraints counter ast =
     case ast of
         Var (t, id) => []
+      | ImportedVar (t, id, tDsl) => []
       | Pair (t, e1, e2) => (t, TmpProduct (getType e1, getType e2)) :: (getConstraints counter e1) @ (getConstraints counter e2)
       | Fst (t, e) =>
         let
@@ -316,38 +328,39 @@ fun unificateTable table =
 
 fun unificateAst ast table =
     case ast of
-    Var (t, id) => Var (unificateType t table, id)
-  | Pair (t, e1, e2) => Pair (unificateType t table, unificateAst e1 table, unificateAst e2 table)
-  | Fst (t, e) => Fst (unificateType t table, unificateAst e table)
-  | Snd (t, e) => Snd (unificateType t table, unificateAst e table)
-  | Ifte (t, e1, e2, e3) =>
-    Ifte (unificateType t table,
-          unificateAst e1 table,
-          unificateAst e2 table,
-          unificateAst e3 table)
-  | Con (t, c) => Con (unificateType t table, c)
-  | App(t, e1, e2) => App (unificateType t table, unificateAst e1 table, unificateAst e2 table)
-  | Abs(t, id, tDsl, e) => Abs (unificateType t table, id, tDsl, unificateAst e table)
-  | Op (t, oper, e1, e2) => Op (unificateType t table, oper, unificateAst e1 table, unificateAst e2 table)
-  | Map (t, e1, e2) => Map (unificateType t table, unificateAst e1 table, unificateAst e2 table)
-  | Foldl (t, e1, e2, e3) =>
-    Foldl (unificateType t table,
-           unificateAst e1 table,
-           unificateAst e2 table,
-           unificateAst e3 table)
-  | Mapi (t, e1, e2) => Mapi (unificateType t table, unificateAst e1 table, unificateAst e2 table)
-  | Foldli (t, e1, e2, e3) =>
-    Foldli (unificateType t table,
-            unificateAst e1 table,
-            unificateAst e2 table,
-            unificateAst e3 table)
-  | Nth (t, e) => Nth (unificateType t table, unificateAst e table)
-  | Loop (t, e1, e2, e3) =>
-    Loop (unificateType t table,
-          unificateAst e1 table,
-          unificateAst e2 table,
-          unificateAst e3 table)
-  | Unit t => Unit (unificateType t table)
+        Var (t, id) => Var (unificateType t table, id)
+      | ImportedVar (t, id, tDsl) => ImportedVar (t, id, tDsl)
+      | Pair (t, e1, e2) => Pair (unificateType t table, unificateAst e1 table, unificateAst e2 table)
+      | Fst (t, e) => Fst (unificateType t table, unificateAst e table)
+      | Snd (t, e) => Snd (unificateType t table, unificateAst e table)
+      | Ifte (t, e1, e2, e3) =>
+        Ifte (unificateType t table,
+              unificateAst e1 table,
+              unificateAst e2 table,
+              unificateAst e3 table)
+      | Con (t, c) => Con (unificateType t table, c)
+      | App(t, e1, e2) => App (unificateType t table, unificateAst e1 table, unificateAst e2 table)
+      | Abs(t, id, tDsl, e) => Abs (unificateType t table, id, tDsl, unificateAst e table)
+      | Op (t, oper, e1, e2) => Op (unificateType t table, oper, unificateAst e1 table, unificateAst e2 table)
+      | Map (t, e1, e2) => Map (unificateType t table, unificateAst e1 table, unificateAst e2 table)
+      | Foldl (t, e1, e2, e3) =>
+        Foldl (unificateType t table,
+               unificateAst e1 table,
+               unificateAst e2 table,
+               unificateAst e3 table)
+      | Mapi (t, e1, e2) => Mapi (unificateType t table, unificateAst e1 table, unificateAst e2 table)
+      | Foldli (t, e1, e2, e3) =>
+        Foldli (unificateType t table,
+                unificateAst e1 table,
+                unificateAst e2 table,
+                unificateAst e3 table)
+      | Nth (t, e) => Nth (unificateType t table, unificateAst e table)
+      | Loop (t, e1, e2, e3) =>
+        Loop (unificateType t table,
+              unificateAst e1 table,
+              unificateAst e2 table,
+              unificateAst e3 table)
+      | Unit t => Unit (unificateType t table)
 
 fun tableLayout table =
     Array.foldli (fn (i, t, r) =>

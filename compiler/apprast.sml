@@ -4,6 +4,7 @@ sig
 
     datatype exp =
              Var of Atoms.Id.t
+             | ImportedVar of Id.t * Type.t
              | Pair of exp * exp
              | Fst of exp
              | Snd of exp
@@ -29,6 +30,7 @@ structure Atoms = Atoms
 open Atoms
 datatype exp =
          Var of Id.t
+         | ImportedVar of Id.t * Type.t
          | Pair of exp * exp
          | Fst of exp
          | Snd of exp
@@ -50,6 +52,7 @@ type top_level = exp
 fun layoutAux ast =
       case ast of
           Var x => Id.layout x
+        | ImportedVar (id, t) => Id.layout id
         | Pair (e1, e2) => "(" ^ (layoutAux e1) ^ "," ^ (layoutAux e2) ^")"
         | Fst e => "(fst " ^ (layoutAux e) ^ ")"
         | Snd e => "(snd " ^ (layoutAux e) ^ ")"

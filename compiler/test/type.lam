@@ -1,1 +1,1 @@
-map (fn (x: (int list list) -> int) => (x = (3.5 * 4.4))) y
+map (fn (x: _) => (x = (3.5 * 4.4))) y
