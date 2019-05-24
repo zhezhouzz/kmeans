@@ -29,7 +29,7 @@ loop
                                     (((fst (fst (snd e))), (snd (fst (snd e)))), (snd (snd e)))
                             )
                             ((0.0, 0.0), 0)
-                            data
+                            (data : real)
                       )
                 )
             )

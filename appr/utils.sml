@@ -1,6 +1,9 @@
 fun fst (x, y) = x
 fun snd (x, y) = y
 
+fun printIntLn x = print ((Int.toString x) ^ "\n")
+fun printRealLn x = print ((Real.toString x) ^ "\n")
+
 (* Additional functions for List *)
 signature EXTENDED_LIST =
 sig

@@ -1,6 +1,7 @@
 local
   $(SML_LIB)/basis/basis.mlb
   $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
+  ../hashtbl/hashtblnj.mlb
   atoms/atoms.mlb
   tmptype.sml
   type_trans.sml
@@ -9,7 +10,8 @@ local
   typedast.sml
   fallback.sml
   type_inf.sml
-  appr_type.sml
+  appr_method.sml
+  appr_kernel.sml
   apprast.sml
   appr.sml
   core.grm.sig

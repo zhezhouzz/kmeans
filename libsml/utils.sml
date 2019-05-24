@@ -100,3 +100,9 @@ fun uniformReal (a, b) =
         a + (Real.fromInt r) * diff / 10000.0
     end
 end;
+
+fun printIntLn x = print ((Int.toString x) ^ "\n")
+fun printRealLn x = print ((Real.toString x) ^ "\n")
+fun printIntListLn x = print ((ExtendedList.toString (Int.toString, x)) ^ "\n")
+fun printRealListLn x = print ((ExtendedList.toString (Real.toString, x)) ^ "\n")
+fun printRealRealListLn x = print ((ExtendedList.toString (fn (a, b) => "(" ^ (Real.toString a) ^ ", " (Real.toString b) ^ ")", x)) ^ "\n")
