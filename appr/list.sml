@@ -10,7 +10,7 @@ sig
     val toList : A.t t -> A.t list
     val printInternal : A.t t -> unit
     val foldl : (A.t * 'b -> 'b) -> 'b -> A.t t -> 'b
-    val foldli : (int * A.t * 'b -> 'b) -> 'b -> A.t t -> 'b
+    val foldli : ((int * A.t) * 'b -> 'b) -> 'b -> A.t t -> 'b
 end
 
 functor ApprList (structure A: APPRABLE) : APPRLIST =
@@ -66,7 +66,7 @@ fun foldliPiece f default ((idx1, r1), (idx2, r2)) =
             if i = idx2 then r else
             let
                 val v = A.linearAppr i (idx1, r1) (idx2, r2)
-                val r = f (i, v, r)
+                val r = f ((i, v), r)
             in
                 aux ((i + 1), r)
             end

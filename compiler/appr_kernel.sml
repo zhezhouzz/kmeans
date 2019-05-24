@@ -14,34 +14,34 @@ struct
 structure ApprMethod = ApprMethod
 structure Atoms = Atoms
 structure HT = HashTable
-type t = {structs: (TmpType.t, unit) HT.hash_table,
+type t = {structs: (TmpType.t list) ref,
           variables: (Atoms.Id.t, TmpType.t) HT.hash_table}
 
 fun init () =
-    {structs = HT.mkTable ((MLton.hash, TmpType.eq), 10),
+    {structs = ref [],
      variables = HT.mkTable ((MLton.hash, Atoms.Id.beq), 10)}
 
 fun registerType (structs, t)  =
-    case HT.find (structs, t) of
-        SOME _ => ()
-      | NONE =>
+    case List.exists (fn e => TmpType.eq (e, t)) (!structs) of
+        true => ()
+      | false =>
         case t of
             TmpType.TmpProduct (t1, t2) =>
             (
               registerType (structs, t1);
               registerType (structs, t2);
-              HT.insert (structs, (t, ()))
+              structs := (!structs) @ [t]
             )
          | TmpType.TmpArrow (t1, t2) =>
             (
               registerType (structs, t1);
               registerType (structs, t2);
-              HT.insert (structs, (t, ()))
+              structs := (!structs) @ [t]
             )
          | TmpType.TmpList t1 =>
            (
              registerType (structs, t1);
-             HT.insert (structs, (t, ()))
+             structs := (!structs) @ [t]
            )
          | _ => ()
 fun register ({structs, variables}, t) = registerType (structs, ApprMethod.requiredType t)
@@ -61,7 +61,7 @@ fun structLayout t =
     case t of
         TmpType.TmpProduct (t1, t2) =>
         "structure " ^ (ApprMethod.typeLayout t) ^ " =\n" ^
-        "PairAppr(structure A = " ^ (ApprMethod.typeLayout t1) ^ "\n" ^
+        "ApprPair(structure A = " ^ (ApprMethod.typeLayout t1) ^ "\n" ^
         "structure B = " ^ (ApprMethod.typeLayout t2) ^ ");\n"
       | TmpType.TmpArrow (t1, t2) =>
         "structure " ^ (ApprMethod.typeLayout t) ^ " =\n" ^
@@ -84,7 +84,7 @@ fun headerAtoms () =
 
 fun header {structs, variables} =
     let
-        val structsStr = (headerAtoms ()) ^ (HT.foldi (fn (t, _, r) => r ^ (structLayout t), "", structs))
+        val structsStr = (headerAtoms ()) ^ (List.foldl (fn (t, r) => r ^ (structLayout t)) "" (!structs))
         val sampleStr = HT.foldi (fn (id, t, r) => r ^ (sampleLayout (t, id)), "", variables)
     in
         structsStr ^ sampleStr

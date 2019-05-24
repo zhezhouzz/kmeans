@@ -31,7 +31,7 @@ fun typeLayout t =
       | TmpType.TmpBool => "B"
       | TmpType.TmpUnit => "U"
       | TmpType.TmpProduct (t1, t2) =>
-        "p" ^ (typeLayout t1) ^ "and " ^ (typeLayout t2) ^ "p"
+        "p" ^ (typeLayout t1) ^ "and" ^ (typeLayout t2) ^ "p"
       | TmpType.TmpArrow (t1, t2) =>
         "p" ^ (typeLayout t1) ^ "map" ^ (typeLayout t2) ^ "p"
       | TmpType.TmpList t1 =>
