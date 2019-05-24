@@ -30,7 +30,7 @@ structure Atoms = Atoms
 open Atoms
 datatype exp =
          Var of Id.t
-         | ImportedVar of Id.t * Type.t
+         | ImportedVar of Id.t
          | Pair of exp * exp
          | Fst of exp
          | Snd of exp
@@ -40,10 +40,10 @@ datatype exp =
          | Con of Const.t
          | Op of Operator.t * exp * exp
          | Map of exp * exp
-         | Foldl of exp * exp * exp
+         | Foldl of  exp * exp * exp
          | Mapi of exp * exp
          | Foldli of exp * exp * exp
-         | Nth of exp
+         | Nth of exp * exp
          | Loop of exp * exp * exp
        | Unit
 

@@ -2,6 +2,8 @@ local
   $(SML_LIB)/basis/basis.mlb
   $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
   atoms/atoms.mlb
+  tmptype.sml
+  type_trans.sml
   ast.sml
   smlast.sml
   typedast.sml

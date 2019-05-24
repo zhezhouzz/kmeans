@@ -16,7 +16,10 @@ signature TYPE_INFERENCE =
 sig
     structure DslAst : DSL_AST
     structure TypedAst : TYPED_AST
+    structure TypeTrans : TYPE_TRANS
     sharing TypedAst.Atoms = DslAst.Atoms
+    sharing TypeTrans.Type = DslAst.Atoms.Type
+    sharing TypedAst.TmpType = TypedAst.TmpType
     val inference : DslAst.top_level -> TypedAst.top_level
 end
 
@@ -24,36 +27,37 @@ structure TypeInference =
 struct
 structure DslAst = DslAst
 structure TypedAst = TypedAst
+structure TypeTrans = TypeTrans
 open TypedAst
 open Atoms
 
-fun dslTypeToTmpType t =
-    case t of
-        Type.TyInt => SOME TmpInt
-      | Type.TyReal => SOME TmpReal
-      | Type.TyBool => SOME TmpBool
-      | Type.TyList t =>
-        (case dslTypeToTmpType t of
-             NONE => NONE
-           | SOME t => SOME (TmpList t))
-      | Type.TyArrow (t1, t2) =>
-        (case (dslTypeToTmpType t1, dslTypeToTmpType t2) of
-             (SOME t1, SOME t2) => SOME (TmpArrow (t1, t2))
-           | _ => NONE
-        )
-      | Type.TyPair (t1, t2) =>
-        (case (dslTypeToTmpType t1, dslTypeToTmpType t2) of
-             (SOME t1, SOME t2) => SOME (TmpProduct (t1, t2))
-           | _ => NONE
-        )
-      | Type.TyUnit => SOME TmpUnit
-      | Type.TyUnknown => NONE
-
+(* fun TypeTrans.trans t = *)
+(*     case t of *)
+(*         Type.TyInt => SOME TmpInt *)
+(*       | Type.TyReal => SOME TmpReal *)
+(*       | Type.TyBool => SOME TmpBool *)
+(*       | Type.TyList t => *)
+(*         (case TypeTrans.trans t of *)
+(*              NONE => NONE *)
+(*            | SOME t => SOME (TmpList t)) *)
+(*       | Type.TyArrow (t1, t2) => *)
+(*         (case (TypeTrans.trans t1, TypeTrans.trans t2) of *)
+(*              (SOME t1, SOME t2) => SOME (TmpArrow (t1, t2)) *)
+(*            | _ => NONE *)
+(*         ) *)
+(*       | Type.TyPair (t1, t2) => *)
+(*         (case (TypeTrans.trans t1, TypeTrans.trans t2) of *)
+(*              (SOME t1, SOME t2) => SOME (TmpProduct (t1, t2)) *)
+(*            | _ => NONE *)
+(*         ) *)
+(*       | Type.TyUnit => SOME TmpUnit *)
+(*       | Type.TyUnknown => NONE *)
+open TmpType.TmpTypeStructure
 fun addType counter ast =
     case ast of
         DslAst.Var id => Var (TmpVar (Counter.next counter), id)
       | DslAst.ImportedVar (id, t) =>
-        (case dslTypeToTmpType t of
+        (case TypeTrans.trans t of
              NONE => raise Fail "import variable should be typed!"
            | SOME t' => ImportedVar (t', id, t))
       | DslAst.Pair (e1, e2) => Pair (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
@@ -99,10 +103,10 @@ fun getType exp =
       | True t => t
       | False t => t
 
-type constraint = tmptype * tmptype
+type constraint = TmpType.t * TmpType.t
 
 fun constraintLayout (t1, t2) =
-    (tmptypeLayout t1) ^ " = " ^ (tmptypeLayout t2)
+    (TmpType.layout t1) ^ " = " ^ (TmpType.layout t2)
 fun constraintsLayout l =
     List.foldl (fn (e, r) =>
                    r ^ "\n" ^ (constraintLayout e)
@@ -175,7 +179,7 @@ fun getConstraints counter ast =
       | Abs(t, id, tDsl, e) =>
         let
             val spec =
-                case dslTypeToTmpType tDsl of
+                case TypeTrans.trans tDsl of
                     NONE => TmpVar (Counter.next counter)
                   | SOME t' => t'
             val cons1 = substConstraints id spec e
@@ -307,7 +311,7 @@ fun constraintsSolver cons n =
             let
                 val (t1, t2) = (unificateType t1 table, unificateType t2 table)
             in
-                if tmptypeEq (t1, t2) then [] else
+                if TmpType.eq (t1, t2) then [] else
                 case (t1, t2) of
                     (TmpVar i, TmpVar j) =>
                     if i < j then
@@ -315,13 +319,13 @@ fun constraintsSolver cons n =
                     else
                         (Array.update (table, i, (Array.sub (table, j))); [])
                   | (TmpVar i, _) =>
-                    if tmptypeFVIn t2 i
+                    if TmpType.fvIn t2 i
                     then
                         raise Fail ("Can't resolve constraint: " ^ (constraintLayout (t1, t2)))
                     else
                         (Array.update (table, i, t2); [])
                   | (_, TmpVar j) =>
-                    if tmptypeFVIn t1 j
+                    if TmpType.fvIn t1 j
                     then
                         raise Fail ("Can't resolve constraint: " ^ (constraintLayout (t1, t2)))
                     else
