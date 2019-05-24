@@ -5,7 +5,7 @@ sig
     val toString : t -> string
 end
 
-structure IntAppr : APPRABLE=
+structure ApprInt : APPRABLE=
 struct
 type t = int
 fun linearAppr idx (idx1, r1) (idx2, r2) =
@@ -13,7 +13,7 @@ fun linearAppr idx (idx1, r1) (idx2, r2) =
 val toString = Int.toString
 end
 
-structure RealAppr : APPRABLE =
+structure ApprReal : APPRABLE =
 struct
 type t = real
 fun linearAppr idx (idx1, r1) (idx2, r2) =
@@ -23,7 +23,19 @@ fun linearAppr idx (idx1, r1) (idx2, r2) =
 val toString = Real.toString
 end
 
-functor PairAppr (structure A: APPRABLE
+structure ApprBool : APPRABLE =
+struct
+type t = bool
+fun linearAppr idx (idx1, r1) (idx2, r2) =
+    if (idx - idx1) > (idx2 - idx)
+    then
+        r1
+    else
+        r2
+val toString = Bool.toString
+end
+
+functor ApprPair (structure A: APPRABLE
                   structure B: APPRABLE) : APPRABLE =
 struct
 type t = A.t * B.t
@@ -37,7 +49,7 @@ fun linearAppr idx (idx1, (a1, b1)) (idx2, (a2, b2)) =
 fun toString (x, y) = "(" ^ (A.toString x) ^ ", " ^ (B.toString y) ^ ")"
 end
 
-functor TripleAppr (structure A: APPRABLE
+functor ApprTriple (structure A: APPRABLE
                     structure B: APPRABLE
                     structure C: APPRABLE) : APPRABLE =
 struct

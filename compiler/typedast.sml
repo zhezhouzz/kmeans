@@ -24,6 +24,7 @@ sig
              | True of TmpType.t
              | False of TmpType.t
     type top_level = exp
+    val getType : exp -> TmpType.t
     val layout : top_level -> string
 end
 
@@ -54,6 +55,28 @@ datatype exp =
          | False of TmpType.t
 type top_level = exp
 open Atoms
+
+fun getType exp =
+    case exp of
+        Var (t, id) => t
+      | ImportedVar (t, id, tDsl) => t
+      | Pair (t, e1, e2) => t
+      | Fst (t, e) => t
+      | Snd (t, e) => t
+      | Ifte (t, e1, e2, e3) => t
+      | Con (t, c) => t
+      | App(t, e1, e2) => t
+      | Abs(t, id, tDsl, e) => t
+      | Op (t, oper, e1, e2) => t
+      | Map (t, e1, e2) => t
+      | Foldl (t, e1, e2, e3) => t
+      | Mapi (t, e1, e2) => t
+      | Foldli (t, e1, e2, e3) => t
+      | Nth (t, e1, e2) => t
+      | Loop (t, e1, e2, e3) => t
+      | Unit t => t
+      | True t => t
+      | False t => t
 
 fun layout exp =
     case exp of

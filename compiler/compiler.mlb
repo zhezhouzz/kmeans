@@ -9,6 +9,9 @@ local
   typedast.sml
   fallback.sml
   type_inf.sml
+  appr_type.sml
+  apprast.sml
+  appr.sml
   core.grm.sig
   core.grm.sml
   core.lex.sml

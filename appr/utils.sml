@@ -1,4 +1,5 @@
 fun fst (x, y) = x
+fun snd (x, y) = y
 
 (* Additional functions for List *)
 signature EXTENDED_LIST =

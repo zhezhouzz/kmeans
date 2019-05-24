@@ -1,36 +1,35 @@
 signature APPR_PASS =
 sig
-    structure DslAst : DSL_AST
+    structure TypedAst : TYPED_AST
     structure ApprSmlAst : APPR_SML_AST
-    sharing DslAst.Atoms = ApprSmlAst.Atoms
-    val pass : DslAst.top_level -> ApprSmlAst.top_level
+    sharing TypedAst.Atoms = ApprSmlAst.Atoms
+    sharing TypedAst.TmpType = ApprSmlAst.TmpType
+    val pass : TypedAst.top_level -> ApprSmlAst.top_level
 end
 
 structure ApprPass : APPR_PASS =
 struct
-structure DslAst = AstDsl
-structure ApprSmlAst = AstApprSml
+structure TypedAst = TypedAst
+structure ApprSmlAst = ApprSmlAst
 fun pass ast =
     case ast of
-        DslAst.AbsAppr(id, t, distr, e) =>
-        ApprSmlAst.Abs (id, t, ApprSmlAst.App (
-                            ApprSmlAst.Abs (id, t, pass e),
-                            ApprSmlAst.App (ApprSmlAst.Var distr, ApprSmlAst.Var id)
-                        ))
-      | DslAst.Var v => ApprSmlAst.Var v
-      | DslAst.Pair (e1, e2) => ApprSmlAst.Pair (pass e1, pass e2)
-      | DslAst.Fst e => ApprSmlAst.Fst (pass e)
-      | DslAst.Snd e => ApprSmlAst.Snd (pass e)
-      | DslAst.Ifte (e1, e2, e3) => ApprSmlAst.Ifte (pass e1, pass e2, pass e3)
-      | DslAst.Con c => ApprSmlAst.Con c
-      | DslAst.App (e1, e2) => ApprSmlAst.App (pass e1, pass e2)
-      | DslAst.Abs (v, t, e) => ApprSmlAst.Abs (v, t, pass e)
-      | DslAst.Op (oper, e1, e2) => ApprSmlAst.Op (oper, pass e1, pass e2)
-      | DslAst.Map (e1, e2) => ApprSmlAst.Map (pass e1, pass e2)
-      | DslAst.Foldl (e1, e2, e3) => ApprSmlAst.Foldl (pass e1, pass e2, pass e3)
-      | DslAst.Mapi (e1, e2) => ApprSmlAst.Mapi (pass e1, pass e2)
-      | DslAst.Foldli (e1, e2, e3) => ApprSmlAst.Foldli (pass e1, pass e2, pass e3)
-      | DslAst.Nth (e) => ApprSmlAst.Nth (pass e)
-      | DslAst.Loop (e1, e2, e3) => ApprSmlAst.Loop (pass e1, pass e2, pass e3)
-      | DslAst.Unit => ApprSmlAst.Unit
+        TypedAst.Var (_, id) => ApprSmlAst.Var id
+      | TypedAst.ImportedVar (_, id, _) => ApprSmlAst.ImportedVar id
+      | TypedAst.Pair (_, e1, e2) => ApprSmlAst.Pair (pass e1, pass e2)
+      | TypedAst.Fst (_, e) => ApprSmlAst.Fst (pass e)
+      | TypedAst.Snd (_, e) => ApprSmlAst.Snd (pass e)
+      | TypedAst.Ifte (_, e1, e2, e3) => ApprSmlAst.Ifte (pass e1, pass e2, pass e3)
+      | TypedAst.Con (_, c) => ApprSmlAst.Con c
+      | TypedAst.App (_, e1, e2) => ApprSmlAst.App (pass e1, pass e2)
+      | TypedAst.Abs (_, v, t, e) => ApprSmlAst.Abs (v, t, pass e)
+      | TypedAst.Op (_, oper, e1, e2) => ApprSmlAst.Op (oper, pass e1, pass e2)
+      | TypedAst.Map (t, e1, e2) => ApprSmlAst.Map (t, pass e1, (TypedAst.getType e2, pass e2))
+      | TypedAst.Foldl (_, e1, e2, e3) => ApprSmlAst.Foldl (pass e1, pass e2, (TypedAst.getType e3, pass e3))
+      | TypedAst.Mapi (t, e1, e2) => ApprSmlAst.Mapi (t, pass e1, (TypedAst.getType e2, pass e2))
+      | TypedAst.Foldli (_, e1, e2, e3) => ApprSmlAst.Foldli (pass e1, pass e2, (TypedAst.getType e3, pass e3))
+      | TypedAst.Nth (_, e1, e2) => ApprSmlAst.Nth ((TypedAst.getType e1, pass e1), pass e2)
+      | TypedAst.Loop (_, e1, e2, e3) => ApprSmlAst.Loop (pass e1, pass e2, pass e3)
+      | TypedAst.Unit _ => ApprSmlAst.Unit
+      | TypedAst.True _ => ApprSmlAst.True
+      | TypedAst.False _ => ApprSmlAst.False
 end

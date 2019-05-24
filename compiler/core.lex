@@ -44,6 +44,7 @@ ws=[\ \t];
 <INITIAL>("int") => (debug "int\n";Tokens.CINT(!line,yypos));
 <INITIAL>("real") => (debug "real\n";Tokens.CREAL(!line,yypos));
 <INITIAL>("bool") => (debug "real\n";Tokens.CBOOL(!line,yypos));
+<INITIAL>("unit") => (debug "real\n";Tokens.UNIT(!line,yypos));
 <INITIAL>("list") => (debug "list\n";Tokens.CLIST(!line,yypos));
 <INITIAL>("true") => (debug "list\n";Tokens.TRUE(!line,yypos));
 <INITIAL>("false") => (debug "list\n";Tokens.FALSE(!line,yypos));

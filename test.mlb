@@ -1,6 +1,5 @@
 $(SML_LIB)/basis/basis.mlb
 $(SML_LIB)/basis/mlton.mlb
-../lib/lib.mlb
-apprable.sml
-list.sml
-map.sml
+libsml/lib.mlb
+appr/appr.mlb
+compiler/test/test.sml

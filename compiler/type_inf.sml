@@ -23,7 +23,7 @@ sig
     val inference : DslAst.top_level -> TypedAst.top_level
 end
 
-structure TypeInference =
+structure TypeInference : TYPE_INFERENCE =
 struct
 structure DslAst = DslAst
 structure TypedAst = TypedAst
@@ -31,27 +31,6 @@ structure TypeTrans = TypeTrans
 open TypedAst
 open Atoms
 
-(* fun TypeTrans.trans t = *)
-(*     case t of *)
-(*         Type.TyInt => SOME TmpInt *)
-(*       | Type.TyReal => SOME TmpReal *)
-(*       | Type.TyBool => SOME TmpBool *)
-(*       | Type.TyList t => *)
-(*         (case TypeTrans.trans t of *)
-(*              NONE => NONE *)
-(*            | SOME t => SOME (TmpList t)) *)
-(*       | Type.TyArrow (t1, t2) => *)
-(*         (case (TypeTrans.trans t1, TypeTrans.trans t2) of *)
-(*              (SOME t1, SOME t2) => SOME (TmpArrow (t1, t2)) *)
-(*            | _ => NONE *)
-(*         ) *)
-(*       | Type.TyPair (t1, t2) => *)
-(*         (case (TypeTrans.trans t1, TypeTrans.trans t2) of *)
-(*              (SOME t1, SOME t2) => SOME (TmpProduct (t1, t2)) *)
-(*            | _ => NONE *)
-(*         ) *)
-(*       | Type.TyUnit => SOME TmpUnit *)
-(*       | Type.TyUnknown => NONE *)
 open TmpType.TmpTypeStructure
 fun addType counter ast =
     case ast of
@@ -80,28 +59,6 @@ fun addType counter ast =
       | DslAst.Unit => Unit TmpUnit
       | DslAst.True => True TmpBool
       | DslAst.False => False TmpBool
-
-fun getType exp =
-    case exp of
-        Var (t, id) => t
-      | ImportedVar (t, id, tDsl) => t
-      | Pair (t, e1, e2) => t
-      | Fst (t, e) => t
-      | Snd (t, e) => t
-      | Ifte (t, e1, e2, e3) => t
-      | Con (t, c) => t
-      | App(t, e1, e2) => t
-      | Abs(t, id, tDsl, e) => t
-      | Op (t, oper, e1, e2) => t
-      | Map (t, e1, e2) => t
-      | Foldl (t, e1, e2, e3) => t
-      | Mapi (t, e1, e2) => t
-      | Foldli (t, e1, e2, e3) => t
-      | Nth (t, e1, e2) => t
-      | Loop (t, e1, e2, e3) => t
-      | Unit t => t
-      | True t => t
-      | False t => t
 
 type constraint = TmpType.t * TmpType.t
 
@@ -402,7 +359,7 @@ fun inference ast =
     let
         val c = Counter.init ()
         val ast = addType c ast
-        val _ = print ((TypedAst.layout ast) ^ "\n")
+        (* val _ = print ((TypedAst.layout ast) ^ "\n") *)
         val cons = getConstraints c ast
         (* val _ = print ((constraintsLayout cons) ^ "\n") *)
         val n = Counter.cur c
@@ -412,8 +369,8 @@ fun inference ast =
         val _ = unificateTable table
         (* val _ = print ((tableLayout table) ^ "\n") *)
         val ast = unificateAst ast table
-        val _ = print ((TypedAst.layout ast) ^ "\n")
+        (* val _ = print ((TypedAst.layout ast) ^ "\n") *)
     in
-        ()
+        ast
     end
 end

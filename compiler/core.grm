@@ -40,6 +40,7 @@ open Atoms
       | CREAL
       | CBOOL
       | CLIST
+      | UNIT
       | ARROW
       | WILD
       | IF
@@ -87,6 +88,7 @@ cctype :
                | cctype MUL cctype (Type.TyPair(cctype1, cctype2))
                | cctype CLIST (Type.TyList(cctype))
                | WILD (Type.TyUnknown)
+               | UNIT (Type.TyUnit)
 atom :
                  VAR (Var(VAR))
                | VAR COLON cctype (ImportedVar(VAR, cctype))
