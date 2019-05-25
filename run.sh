@@ -1,5 +1,6 @@
 #!/bin/bash
 
+rm -r build/
 mkdir -p "build/"$(dirname "$2")
 touch "build/"$2".sml" || exit
 ./compiler/compiler $2 > "./build/"$2".sml"

@@ -49,11 +49,19 @@ fun sample ({structs, variables}, t, id) =
     case t of
         ApprMethod.Sample (TmpType.TmpList t) =>
         let
-            val _ = registerType (structs, TmpType.TmpList t)
+            val t = TmpType.TmpList t
+            val _ = registerType (structs, t)
         in
             case HT.find (variables, id) of
-                SOME _ => raise Fail ("imported variable \"" ^ id ^ "\"has different type")
-              | NONE => HT.insert (variables, (id, TmpType.TmpList t))
+                SOME t' =>
+                if TmpType.eq (t, t')
+                then
+                    ()
+                else
+                    raise Fail ("imported variable \"" ^ id ^ "\" has different type:\n" ^
+                                "Old: " ^ (TmpType.layout t') ^ "\n" ^
+                                "New: " ^ (TmpType.layout t) ^ "\n")
+              | NONE => HT.insert (variables, (id, t))
         end
       | _ => raise Fail "Wrong sample"
 

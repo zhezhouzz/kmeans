@@ -1,7 +1,37 @@
 foldl
-    (fn x => (printIntLn : int -> unit) (fst x))
+    (fn x => (printRealRealLn : (real * real) -> unit) (fst x))
     ()
-(map
+((fn c =>
+      (
+        mapi
+            (fn k =>
+                (
+                  (fn t =>
+                      (
+                        (fn numr => (((fst (fst t)) / numr), ((snd (fst t)) / numr)))
+                            ((Real.fromInt : int -> real) (snd t))
+                      )
+                  )
+                      (
+                        foldli
+                            (fn e =>
+                                if ((nth c (fst (fst e))) = (fst k))
+                                then
+                                    ((((fst (fst (snd e))) + (fst (snd (fst e)))),
+                                      ((snd (fst (snd e))) + (snd (snd (fst e))))),
+                                     ((snd (snd e)) + 1))
+                                else
+                                    (((fst (fst (snd e))), (snd (fst (snd e)))), (snd (snd e)))
+                            )
+                            ((0.0, 0.0), 0)
+                            (data : (real * real) list)
+                      )
+                )
+            )
+            (centroids : ((real * real) list))
+      )
+  )
+      (map
            (fn p =>
              (fst
                  (foldli
@@ -13,7 +43,8 @@ foldl
                               (snd e)
                       )
                       (0, 999999.0)
-                      (map (fn e => (distance: ((real * real) * (real * real)) -> real) (e, p)) (centroids : (real * real) list))
+                      (map (fn e => (distance: ((real * real) * (real * real)) -> real) (e, p)) (centroids : ((real * real) list)))
                  ))
-           ) (data: (real * real) list)
+           ) (data : (real * real) list)
       )
+)

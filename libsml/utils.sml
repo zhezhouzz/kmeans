@@ -102,6 +102,7 @@ fun uniformReal (a, b) =
 end;
 
 fun printIntLn x = print ((Int.toString x) ^ "\n")
+fun printRealRealLn (x, y) = print ("(" ^ (Real.toString x) ^ ", " ^ (Real.toString y) ^ ")\n")
 fun printRealLn x = print ((Real.toString x) ^ "\n")
 fun printIntListLn x = print ((ExtendedList.toString (Int.toString, x)) ^ "\n")
 fun printRealListLn x = print ((ExtendedList.toString (Real.toString, x)) ^ "\n")
