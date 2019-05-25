@@ -23,6 +23,7 @@ open Atoms
       | VAR of string
       | COLON
       | COMMA
+      | SHARP
       | NUMB of string
       | MAP
       | MAPI
@@ -92,6 +93,7 @@ cctype :
 atom :
                  VAR (Var(VAR))
                | VAR COLON cctype (ImportedVar(VAR, cctype))
+               | VAR COLON cctype COLON expr (ImportedVarD(VAR, cctype, expr))
                | LPAREN expr RPAREN (expr)
                | LPAREN RPAREN (Unit)
                | TRUE (True)

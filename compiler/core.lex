@@ -57,6 +57,7 @@ ws=[\ \t];
 <INITIAL>("<") => (debug "rparen\n"; Tokens.LES(!line,yypos));
 <INITIAL>(">") => (debug "rparen\n"; Tokens.GRE(!line,yypos));
 <INITIAL>(":") => (debug "rparen\n"; Tokens.COLON(!line,yypos));
+<INITIAL>("#") => (debug "rparen\n"; Tokens.SHARP(!line,yypos));
 <INITIAL>(",") => (debug "rparen\n"; Tokens.COMMA(!line,yypos));
 <INITIAL>("_") => (debug "rparen\n"; Tokens.WILD(!line,yypos));
 <INITIAL>{variable} => (debug ("var: "^yytext^"\n"); Tokens.VAR(yytext,!line,yypos));

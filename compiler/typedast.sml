@@ -6,6 +6,7 @@ sig
     datatype exp =
              Var of TmpType.t * Atoms.Id.t
              | ImportedVar of TmpType.t * Atoms.Id.t * Atoms.Type.t
+             | ImportedVarD of TmpType.t * Atoms.Id.t * Atoms.Type.t * exp
              | Pair of TmpType.t * exp * exp
              | Fst of TmpType.t * exp
              | Snd of TmpType.t * exp
@@ -36,6 +37,7 @@ structure TmpType = TmpType
 datatype exp =
          Var of TmpType.t * Atoms.Id.t
          | ImportedVar of TmpType.t * Atoms.Id.t * Atoms.Type.t
+         | ImportedVarD of TmpType.t * Atoms.Id.t * Atoms.Type.t * exp
          | Pair of TmpType.t * exp * exp
          | Fst of TmpType.t * exp
          | Snd of TmpType.t * exp
@@ -60,6 +62,7 @@ fun getType exp =
     case exp of
         Var (t, id) => t
       | ImportedVar (t, id, tDsl) => t
+      | ImportedVarD (t, id, tDsl, e) => t
       | Pair (t, e1, e2) => t
       | Fst (t, e) => t
       | Snd (t, e) => t
@@ -82,6 +85,7 @@ fun layout exp =
     case exp of
         Var (t, id) => "(" ^ (Id.layout id) ^ " : " ^ (TmpType.layout t) ^ ")"
       | ImportedVar (t, id, tDsl) => "({" ^ (Id.layout id) ^ " : " ^ (Type.layout tDsl) ^ "}" ^ " : " ^ (TmpType.layout t) ^ ")"
+      | ImportedVarD (t, id, tDsl, e) => "({" ^ (Id.layout id) ^ " : " ^ (Type.layout tDsl) ^ "}" ^ " : " ^ (TmpType.layout t) ^ " : " ^ (layout e) ^")"
       | Pair (t, e1, e2) => "(" ^ (layout e1) ^ "," ^ (layout e2) ^ " : " ^ (TmpType.layout t) ^ ")"
       | Fst (t, e) => "(" ^ "fst " ^ (layout e) ^ " : " ^ (TmpType.layout t) ^ ")"
       | Snd (t, e) => "(" ^ "snd " ^ (layout e) ^ " : " ^ (TmpType.layout t) ^ ")"
