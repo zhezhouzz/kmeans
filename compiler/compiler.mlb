@@ -1,23 +1,6 @@
 local
   $(SML_LIB)/basis/basis.mlb
-  $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
-  ../hashtbl/hashtblnj.mlb
-  atoms/atoms.mlb
-  tmptype.sml
-  type_trans.sml
-  ast.sml
-  smlast.sml
-  typedast.sml
-  fallback.sml
-  type_inf.sml
-  appr_method.sml
-  appr_kernel.sml
-  apprast.sml
-  appr.sml
-  core.grm.sig
-  core.grm.sml
-  core.lex.sml
-  parser.sml
+  parser/parser.mlb
 in
   main.sml
 end

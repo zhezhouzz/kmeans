@@ -1,13 +1,10 @@
-all:lex yacc parser
+all: mparser compiler
 
-lex:core.lex
-	mllex core.lex
+mparser:
+	cd parser && $(MAKE)
 
-yacc:core.grm
-	mlyacc core.grm
-
-parser:
-	mlton -output compiler compiler.mlb
+compiler:
+	mlton compiler.mlb
 
 clean:
-	rm core.lex.sml core.grm.sml core.grm.sig core.grm.desc compiler
+	rm compiler && cd parser && $(MAKE) clean
