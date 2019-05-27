@@ -1,1 +1,1 @@
-(printIntLn: (int -> unit)) (foldl (fn (x: _) => ((fst x) + (snd x))) 0 (data : _ : fn l => 1.0))
+(printIntLn: (int -> unit)) (afoldl (fn x: int * int => ((fst x) + (snd x))) 0 (data : int apprlist : fn l : int list => 1.0))
