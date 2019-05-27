@@ -1,0 +1,104 @@
+(*  User declarations section for helper functions *)
+open DslAst
+open Atoms
+%%
+(* ML Yacc Declarations *)
+%name Untyped (* tokens signature will be Untyped_TOKENS *)
+(*
+  The structure Token is defined by LrParser structure provided
+  by ml-yacc-lib
+*)
+%header (functor UntypedLrValsFun (structure Token : TOKEN) : Untyped_LRVALS)
+%eop EOF
+%noshift EOF
+%pos int
+(*
+  Lex functor is constructed to expect TOKENS signature
+  constructed from following declarations
+ *)
+%term   LAM | DOT
+      | LPAREN | RPAREN
+      | VAR of string
+      | NUMBI of string
+      | NUMBR of string
+      | COLON | COMMA | SHARP
+      | MAP | MAPI | FOLDL | FOLDLI | NTH
+      | AMAP | AMAPI | AFOLDL | AFOLDLI | ANTH
+      | LOOP
+      | ADD | MUL | DIV | LES | EQ | GRE
+      | ADDR | MULR | DIVR | LESR | GRER
+      | EQB
+      | CINT | CREAL | CBOOL | CLIST | CAPPRLIST | CUNIT | CARROW
+      | WILD
+      | IF | ELSE | THEN
+      | TRUE | FALSE
+      | FST | SND
+      | EOF
+%nonterm prog of top_level
+               | expr of exp
+               | non_lam_term of exp
+               | cctype of Type.t
+               | atom of exp
+(*
+  Precedence and associativity are implicit
+*)
+%verbose
+%pure
+
+%%
+(* BNF Rules *)
+prog : expr (expr)
+
+expr :
+                         LAM VAR COLON cctype DOT expr (Abs(NONE, VAR, cctype, expr))
+               | non_lam_term (non_lam_term)
+non_lam_term :
+                 atom (atom)
+               | MAP atom atom (Map(NONE, atom1, atom2))
+               | MAPI atom atom (Mapi(NONE, atom1, atom2))
+               | FOLDL atom atom atom (Foldl(NONE, atom1, atom2, atom3))
+               | FOLDLI atom atom atom (Foldli(NONE, atom1, atom2, atom3))
+               | NTH atom atom (ANth(NONE, atom1, atom2))
+               | AMAP atom atom (AMap(NONE, atom1, atom2))
+               | AMAPI atom atom (AMapi(NONE, atom1, atom2))
+               | AFOLDL atom atom atom (AFoldl(NONE, atom1, atom2, atom3))
+               | AFOLDLI atom atom atom (AFoldli(NONE, atom1, atom2, atom3))
+               | ANTH atom atom (ANth(NONE, atom1, atom2))
+               | IF expr THEN expr ELSE expr (Ifte (NONE, expr1, expr2, expr3))
+               | LOOP atom atom atom (Loop(NONE, atom1, atom2, atom3))
+               | non_lam_term atom (App(NONE, non_lam_term, atom))
+cctype :
+                 CINT (Type.TyInt)
+               | CREAL (Type.TyReal)
+               | CBOOL (Type.TyBool)
+               | CUNIT (Type.TyUnit)
+               | LPAREN cctype RPAREN (cctype)
+               | cctype CARROW cctype (Type.TyArrow(cctype1, cctype2))
+               | cctype MUL cctype (Type.TyProduct(cctype1, cctype2))
+               | cctype CLIST (Type.TyList(cctype))
+               | cctype CAPPRLIST (Type.TyApprList(cctype))
+atom :
+                 VAR (Var(NONE, VAR))
+               | VAR COLON cctype (Var(SOME cctype, VAR))
+               | VAR COLON cctype COLON expr (VarD(SOME cctype, VAR, expr))
+               | LPAREN expr RPAREN (expr)
+               | LPAREN RPAREN (Con (Type.TyUnit, Const.CUnit))
+               | TRUE (Con (Type.TyBool, Const.CTrue))
+               | FALSE (Con (Type.TyBool, Const.CFalse))
+               | expr COMMA expr (Pair(NONE, expr1, expr2))
+               | expr ADD expr (Op(NONE, Operator.Add, expr1, expr2))
+               | expr MUL expr (Op(NONE, Operator.Mul, expr1, expr2))
+               | expr DIV expr (Op(NONE, Operator.Divi, expr1, expr2))
+               | expr LES expr (Op(NONE, Operator.Less, expr1, expr2))
+               | expr EQ expr (Op(NONE, Operator.Eq, expr1, expr2))
+               | expr GRE expr (Op(NONE, Operator.Greater, expr1, expr2))
+               | expr ADDR expr (Op(NONE, Operator.AddR, expr1, expr2))
+               | expr MULR expr (Op(NONE, Operator.MulR, expr1, expr2))
+               | expr DIVR expr (Op(NONE, Operator.DiviR, expr1, expr2))
+               | expr LESR expr (Op(NONE, Operator.LessR, expr1, expr2))
+               | expr EQB expr (Op(NONE, Operator.EqB, expr1, expr2))
+               | expr GRER expr (Op(NONE, Operator.GreaterR, expr1, expr2))
+               | FST expr (Fst(NONE, expr))
+               | SND expr (Snd(NONE, expr))
+               | NUMBI (Con (Type.TyInt, Const.parseNum(NUMBI)))
+               | NUMBR (Con (Type.TyReal, Const.parseNum(NUMBR)))

@@ -39,6 +39,10 @@ fun addType counter ast =
         (case TypeTrans.trans t of
              NONE => raise Fail "import variable should be typed!"
            | SOME t' => ImportedVar (t', id, t))
+      | DslAst.ImportedVarD (id, t, e) =>
+        (case TypeTrans.trans t of
+             NONE => ImportedVarD (TmpVar (Counter.next counter), id, t, addType counter e)
+           | SOME t' => ImportedVarD (t', id, t, addType counter e))
       | DslAst.Pair (e1, e2) => Pair (TmpVar (Counter.next counter), addType counter e1, addType counter e2)
       | DslAst.Fst e => Fst (TmpVar (Counter.next counter), addType counter e)
       | DslAst.Snd e => Snd (TmpVar (Counter.next counter), addType counter e)
@@ -83,6 +87,12 @@ fun substConstraints idx ty exp =
             (print "Warning: using the same variable name with an imported variable.\n"; [])
         else
             []
+      | ImportedVarD (t, id, tDsl, e) =>
+        if Id.beq (id, idx)
+        then
+            (print "Warning: using the same variable name with an imported variable.\n"; substConstraints idx ty e)
+        else
+            (substConstraints idx ty e)
       | Pair (t, e1, e2) => (substConstraints idx ty e1) @ (substConstraints idx ty e2)
       | Fst (t, e) => (substConstraints idx ty e)
       | Snd (t, e) => (substConstraints idx ty e)
@@ -107,6 +117,15 @@ fun getConstraints counter ast =
     case ast of
         Var (t, id) => []
       | ImportedVar (t, id, tDsl) => []
+      | ImportedVarD (t, id, tDsl, e) =>
+        let
+            val t' = getType e
+            val tyA = TmpVar (Counter.next counter)
+            val t0 = TmpList tyA
+            val te = TmpArrow (TmpList tyA, TmpReal)
+        in
+            [(t, t0), (t', te)] @ (getConstraints counter e)
+        end
       | Pair (t, e1, e2) =>
         [(t, TmpProduct (getType e1, getType e2))] @
         (getConstraints counter e1) @
@@ -316,6 +335,7 @@ fun unificateAst ast table =
     case ast of
         Var (t, id) => Var (unificateType t table, id)
       | ImportedVar (t, id, tDsl) => ImportedVar (t, id, tDsl)
+      | ImportedVarD (t, id, tDsl, e) => ImportedVarD (unificateType t table, id, tDsl, unificateAst e table)
       | Pair (t, e1, e2) => Pair (unificateType t table, unificateAst e1 table, unificateAst e2 table)
       | Fst (t, e) => Fst (unificateType t table, unificateAst e table)
       | Snd (t, e) => Snd (unificateType t table, unificateAst e table)
@@ -369,7 +389,7 @@ fun inference ast =
         val _ = unificateTable table
         (* val _ = print ((tableLayout table) ^ "\n") *)
         val ast = unificateAst ast table
-        (* val _ = print ((TypedAst.layout ast) ^ "\n") *)
+        val _ = print ((TypedAst.layout ast) ^ "\n")
     in
         ast
     end

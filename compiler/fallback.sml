@@ -10,10 +10,12 @@ structure FallBackPass : FALL_BACK_PASS =
 struct
 structure DslAst = DslAst
 structure SmlAst = SmlAst
+structure T = DslAst.Type
 fun pass ast =
     case ast of
         DslAst.Var v => SmlAst.Var v
      | DslAst.ImportedVar (v, _) => SmlAst.Var v
+     | DslAst.ImportedVarD (v, _, _) => SmlAst.Var v
      | DslAst.Pair (e1, e2) => SmlAst.Pair (pass e1, pass e2)
      | DslAst.Fst e => SmlAst.Fst (pass e)
      | DslAst.Snd e => SmlAst.Snd (pass e)

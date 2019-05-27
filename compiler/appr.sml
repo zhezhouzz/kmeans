@@ -15,6 +15,7 @@ fun pass ast =
     case ast of
         TypedAst.Var (_, id) => ApprSmlAst.Var id
       | TypedAst.ImportedVar (t, id, _) => ApprSmlAst.ImportedVar (t, id)
+      | TypedAst.ImportedVarD (t, id, _, e) => ApprSmlAst.ImportedVarD (t, id, pass e)
       | TypedAst.Pair (_, e1, e2) => ApprSmlAst.Pair (pass e1, pass e2)
       | TypedAst.Fst (_, e) => ApprSmlAst.Fst (pass e)
       | TypedAst.Snd (_, e) => ApprSmlAst.Snd (pass e)

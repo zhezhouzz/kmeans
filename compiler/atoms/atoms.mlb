@@ -2,6 +2,5 @@
   $(SML_LIB)/mlyacc-lib/mlyacc-lib.mlb
   id.sml
   operator.sml
-  type.sml
   const.sml
   atoms.sml

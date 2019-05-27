@@ -9,6 +9,7 @@ sig
     datatype exp =
              Var of Atoms.Id.t
              | ImportedVar of TmpType.t * Atoms.Id.t
+             | ImportedVarD of TmpType.t * Atoms.Id.t * exp
              | Pair of exp * exp
              | Fst of exp
              | Snd of exp
@@ -39,6 +40,7 @@ structure ApprKernel = ApprKernel
 datatype exp =
          Var of Atoms.Id.t
          | ImportedVar of  TmpType.t * Atoms.Id.t
+         | ImportedVarD of  TmpType.t * Atoms.Id.t * exp
          | Pair of exp * exp
          | Fst of exp
          | Snd of exp
@@ -66,10 +68,12 @@ fun layout ast =
         fun layoutAux ast =
             case ast of
                 Var x => Atoms.Id.layout x
-              | ImportedVar (t, id) =>
+              | ImportedVar (t, id) => Atoms.Id.layout id
+              | ImportedVarD (t, id, e) =>
                 (case t of
                      TmpType.TmpList _ => (ApprKernel.sample (header, ApprKernel.ApprMethod.Sample t, id); Atoms.Id.layout id)
-                   | _ => Atoms.Id.layout id)
+                   | _ => raise Fail ("Only support approximation over list!\n" ^
+                                      (Atoms.Id.layout id) ^ " : " ^ (TmpType.layout t) ^ " doesn't work."))
               | Pair (e1, e2) => "(" ^ (layoutAux e1) ^ "," ^ (layoutAux e2) ^")"
               | Fst e => "(fst " ^ (layoutAux e) ^ ")"
               | Snd e => "(snd " ^ (layoutAux e) ^ ")"
