@@ -1,4 +1,0 @@
-$(SML_LIB)/basis/basis.mlb
-$(SML_LIB)/basis/mlton.mlb
-libsml/lib.mlb
-source_code/to_sml2.sml
