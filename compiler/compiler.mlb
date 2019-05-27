@@ -2,5 +2,5 @@ local
   $(SML_LIB)/basis/basis.mlb
   parser/parser.mlb
 in
-  main.sml
+  main/main.sml
 end

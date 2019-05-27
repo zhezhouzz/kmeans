@@ -31,7 +31,7 @@ open Atoms
       | CINT | CREAL | CBOOL | CLIST | CAPPRLIST | CUNIT | CARROW
       | WILD
       | IF | ELSE | THEN
-      | TRUE | FALSE | UNIT
+      | TRUE | FALSE
       | FST | SND
       | EOF
 %nonterm prog of top_level

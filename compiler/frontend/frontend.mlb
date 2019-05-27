@@ -1,5 +1,14 @@
 $(SML_LIB)/basis/basis.mlb
 ../atoms/atoms.mlb
+../format/format.sml
 type.sml
 dsl_ast.sml
+type_check.sml
+typed_ast.sml
+simplify.sml
+fallback.sml
+appr_type.sml
+appr_kernel.sml
+appr_ast.sml
+approx.sml
 frontend.sml
