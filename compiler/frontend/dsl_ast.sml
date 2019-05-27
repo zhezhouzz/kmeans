@@ -85,131 +85,37 @@ fun getType ast =
       | ANth (t, e1, e2) => t
       | Loop (t, e1, e2, e3) => t
 
+open Format
 fun layout ast =
     case ast of
         Var (t, id) =>
         (case t of
              NONE => Id.layout id
-           | SOME t => "("^ (Id.layout id) ^ " : " ^ (Type.layout t) ^ ")"
+           | SOME t => paren (colon (Id.layout id, Type.layout t))
         )
       | VarD (t, id, _) =>
         (case t of
              NONE => Id.layout id
-           | SOME t => "("^ (Id.layout id) ^ " : " ^ (Type.layout t) ^ ")"
+           | SOME t => paren (colon (Id.layout id, Type.layout t))
         )
-      | Pair (_, e1, e2) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-        in
-            "("^s1^","^s2^")"
-        end
-      | Fst (_, e1) => "(fst " ^ (layout e1) ^ ")"
-      | Snd (_, e1) => "(snd " ^ (layout e1) ^ ")"
+      | Pair (_, e1, e2) => paren (comma (layout e1, layout e2))
+      | Fst (_, e1) => paren (spaces ["fst", layout e1])
+      | Snd (_, e1) => paren (spaces ["snd", layout e1])
       | Ifte (_, e1, e2, e3) =>
-        "(if " ^ (layout e1) ^ " then " ^ (layout e2) ^ " else " ^ (layout e3) ^ ")"
-      | Con (t, c) => "(" ^ (Const.layout c) ^ " : " ^ (Type.layout t) ^")"
-      | App (_, e1, e2) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-        in
-            "(" ^ s1 ^ " " ^ s2 ^ ")"
-        end
-      | Abs(_, id, t, e) =>
-        let
-            val s = layout e
-        in
-            "(fn ("^ (Id.layout id) ^ " : " ^ (Type.layout t) ^ ") => " ^ s ^")"
-        end
-      | Op (_, oper,e1, e2) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-            val s0 = Operator.layout oper
-        in
-            "(" ^ s1 ^ s0 ^ s2 ^ ")"
-        end
-      | Map (_, e1, e2) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-        in
-            "(map " ^ s1 ^ " " ^ s2 ^ ")"
-        end
-      | Foldl (_, e1, e2, e3) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-            val s3 = layout e3
-        in
-            "(foldl " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
-        end
-      | Mapi (_, e1, e2) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-        in
-            "(mapi " ^ s1 ^ " " ^ s2 ^ ")"
-        end
-      | Foldli (_, e1, e2, e3) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-            val s3 = layout e3
-        in
-            "(foldli " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
-        end
-      | Nth (_, e1, e2) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-        in
-            "(nth " ^ s1 ^ " " ^ s2 ^ ")"
-        end
-      | AMap (_, e1, e2) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-        in
-            "(map " ^ s1 ^ " " ^ s2 ^ ")"
-        end
-      | AFoldl (_, e1, e2, e3) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-            val s3 = layout e3
-        in
-            "(foldl " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
-        end
-      | AMapi (_, e1, e2) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-        in
-            "(mapi " ^ s1 ^ " " ^ s2 ^ ")"
-        end
-      | AFoldli (_, e1, e2, e3) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-            val s3 = layout e3
-        in
-            "(foldli " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
-        end
-      | ANth (_, e1, e2) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-        in
-            "(nth " ^ s1 ^ " " ^ s2 ^ ")"
-        end
-      | Loop (_, e1, e2, e3) =>
-        let
-            val s1 = layout e1
-            val s2 = layout e2
-            val s3 = layout e3
-        in
-            "(loop " ^ s1 ^ " " ^ s2 ^ " " ^ s3 ^ ")"
-        end
+        paren (spaces ["if", layout e1, "then", layout e2, "else", layout e3])
+      | Con (t, c) => paren (colon (Const.layout c, Type.layout t))
+      | App (_, e1, e2) => paren (spaces [layout e1, layout e2])
+      | Abs(_, id, t, e1) => paren (spaces ["fn", (colon (Id.layout id, Type.layout t)), "=>", layout e1])
+      | Op (_, oper,e1, e2) => paren (spaces [layout e1, Operator.layout oper, layout e2])
+      | Map (_, e1, e2) => paren (spaces ["map", layout e1, layout e2])
+      | Foldl (_, e1, e2, e3) => paren (spaces ["foldl", layout e1, layout e2, layout e3])
+      | Mapi (_, e1, e2) => paren (spaces ["mapi", layout e1, layout e2])
+      | Foldli (_, e1, e2, e3) => paren (spaces ["foldli", layout e1, layout e2, layout e3])
+      | Nth (_, e1, e2) => paren (spaces ["nth", paren (comma (layout e1, layout e2))])
+      | AMap (_, e1, e2) => paren (spaces ["amap", layout e1, layout e2])
+      | AFoldl (_, e1, e2, e3) => paren (spaces ["afoldl", layout e1, layout e2, layout e3])
+      | AMapi (_, e1, e2) => paren (spaces ["amapi", layout e1, layout e2])
+      | AFoldli (_, e1, e2, e3) => paren (spaces ["afoldli", layout e1, layout e2, layout e3])
+      | ANth (_, e1, e2) => paren (spaces ["anth", paren (comma (layout e1, layout e2))])
+      | Loop (_, e1, e2, e3) => paren (spaces ["loop", layout e1, layout e2, layout e3])
 end

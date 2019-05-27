@@ -64,23 +64,23 @@ fun registerType (structs, t) =
               registerType (structs, t2);
               structs := (!structs) @ [t]
             )
-         | Type.TyArrow (t1, t2) =>
+          | Type.TyArrow (t1, t2) =>
             (
               registerType (structs, t1);
               registerType (structs, t2);
               structs := (!structs) @ [t]
             )
-         | Type.TyApprList t1 =>
-           (
-             registerType (structs, t1);
-             structs := (!structs) @ [t]
-           )
-         | Type.TyList t1 =>
-           (
-             registerType (structs, t1);
-             structs := (!structs) @ [t]
-           )
-         | t => structs := (!structs) @ [t]
+          | Type.TyApprList t1 =>
+            (
+              registerType (structs, t1);
+              structs := (!structs) @ [t]
+            )
+          | Type.TyList t1 =>
+            (
+              registerType (structs, t1);
+              structs := (!structs) @ [t]
+            )
+          | t => structs := (!structs) @ [t]
 fun register (structs, t) = registerType (structs, requiredType t)
 
 fun headerAux t =
