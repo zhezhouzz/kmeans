@@ -1,29 +1,29 @@
-foldl
-    (fn x => (printRealRealLn : (real * real) -> unit) (fst x))
+afoldl
+    (fn x : (real * real) * unit => (printRealRealLn : (real * real) -> unit) (fst x))
     ()
     (
-      (fn data =>
+      (fn data : (real * real) apprlist =>
           (
             loop
-                (fn centroids =>
-                    (fn c =>
+                (fn centroids : (real * real) apprlist =>
+                    (fn c : int apprlist =>
                         (
-                          mapi
-                              (fn k =>
+                          amapi
+                              (fn k : int * (real * real) =>
                                   (
-                                    (fn t =>
+                                    (fn t : (real * real) * int =>
                                         (
-                                          (fn numr => (((fst (fst t)) / numr), ((snd (fst t)) / numr)))
+                                          (fn numr : real => (((fst (fst t)) /. numr), ((snd (fst t)) /. numr)))
                                               ((Real.fromInt : int -> real) (snd t))
                                         )
                                     )
                                         (
-                                          foldli
-                                              (fn e =>
-                                                  if ((nth c (fst (fst e))) = (fst k))
+                                          afoldli
+                                              (fn e : (int * (real * real)) * ((real * real) * int) =>
+                                                  if ((anth c (fst (fst e))) = (fst k))
                                                   then
-                                                      ((((fst (fst (snd e))) + (fst (snd (fst e)))),
-                                                        ((snd (fst (snd e))) + (snd (snd (fst e))))),
+                                                      ((((fst (fst (snd e))) +. (fst (snd (fst e)))),
+                                                        ((snd (fst (snd e))) +. (snd (snd (fst e))))),
                                                        ((snd (snd e)) + 1))
                                                   else
                                                       (((fst (fst (snd e))), (snd (fst (snd e)))), (snd (snd e)))
@@ -36,26 +36,26 @@ foldl
                               centroids
                         )
                     )
-                        (map
-                             (fn p =>
+                        (amap
+                             (fn p : real * real =>
                                  (fst
-                                      (foldli
-                                           (fn e =>
-                                               if ((snd (fst e)) < (snd (snd e)))
+                                      (afoldli
+                                           (fn e : (int * real) * (int * real) =>
+                                               if ((snd (fst e)) <. (snd (snd e)))
                                                then
                                                    (fst e)
                                                else
                                                    (snd e)
                                            )
                                            (0, 999999.0)
-                                           (map (fn e => (distance: ((real * real) * (real * real)) -> real) (e, p)) centroids)
+                                           (amap (fn e : real * real => (distance: ((real * real) * (real * real)) -> real) (e, p)) centroids)
                                  ))
                              ) data
                         )
                 )
-                (centroids : ((real * real) list))
+                (centroids : (real * real) apprlist: fn x : (real * real) list => 1.0)
                 3
           )
       )
-          (data : (real * real) list)
+          (data : (real * real) apprlist : fn x : (real * real) list => 1.0)
     )

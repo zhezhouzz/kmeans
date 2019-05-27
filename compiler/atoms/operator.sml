@@ -15,6 +15,7 @@ sig
              | EqB
     val ar : t -> int
     val layout : t -> string
+    val fallback : t -> t
 end
 
 structure Operator : OPERATOR =
@@ -56,4 +57,18 @@ fun layout Add = "+"
   | layout LessR = "<."
   | layout GreaterR = ">."
   | layout EqB = "=#"
+fun fallback oper =
+    case oper of
+        Add => Add
+      | Mul => Mul
+      | Divi => Divi
+      | Less => Less
+      | Eq => Eq
+      | Greater => Greater
+      | AddR => Add
+      | MulR => Mul
+      | DiviR => Divi
+      | LessR => Less
+      | GreaterR => Greater
+      | EqB => Eq
 end

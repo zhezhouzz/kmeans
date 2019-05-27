@@ -2,7 +2,7 @@ signature FALL_BACK =
 sig
     structure Simplify : SIMPLIFY
     include SIMPLIFY
-    val fallback : TypedAst.top_level -> string
+    val fallback : TypedAst.top_level -> TypedAst.top_level
 end
 
 functor FallBack (Simplify : SIMPLIFY) : FALL_BACK =
@@ -42,6 +42,6 @@ fun fallback ast =
               | ANth (t, e1, e2) => Nth (typeFallback t, aux e1, aux e2)
               | Loop (t, e1, e2, e3) => Loop (typeFallback t, aux e1, aux e2, aux e3)
     in
-        (layout (aux ast)) ^ ";"
+        aux ast
     end
 end
