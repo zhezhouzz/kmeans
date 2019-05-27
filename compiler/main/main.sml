@@ -11,7 +11,7 @@ let
     val ast = Approx.typeCheck ast
     (* val _ = print ((DslAst.layout ast) ^ "\n") *)
     val ast = Approx.simplify ast
-    val _ = print ((Approx.fallback ast) ^ "\n")
+    val _ = print ((Approx.TypedAst.layoutSML (Approx.fallback ast)) ^ "\n")
     val ast = Approx.approx ast
     val _ = print ((Approx.ApprAst.layoutSML ast) ^ "\n")
     (* val smlast = ApproxPass.pass ast *)

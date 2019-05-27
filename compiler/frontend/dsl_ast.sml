@@ -87,8 +87,16 @@ fun getType ast =
 
 fun layout ast =
     case ast of
-        Var (_, v) => Id.layout v
-      | VarD (_, v, _) => Id.layout v
+        Var (t, id) =>
+        (case t of
+             NONE => Id.layout id
+           | SOME t => "("^ (Id.layout id) ^ " : " ^ (Type.layout t) ^ ")"
+        )
+      | VarD (t, id, _) =>
+        (case t of
+             NONE => Id.layout id
+           | SOME t => "("^ (Id.layout id) ^ " : " ^ (Type.layout t) ^ ")"
+        )
       | Pair (_, e1, e2) =>
         let
             val s1 = layout e1
@@ -100,7 +108,7 @@ fun layout ast =
       | Snd (_, e1) => "(snd " ^ (layout e1) ^ ")"
       | Ifte (_, e1, e2, e3) =>
         "(if " ^ (layout e1) ^ " then " ^ (layout e2) ^ " else " ^ (layout e3) ^ ")"
-      | Con (t, c) => "(" ^ (Const.layout c) ^ " : " ^ (Type.layout t) ^")" 
+      | Con (t, c) => "(" ^ (Const.layout c) ^ " : " ^ (Type.layout t) ^")"
       | App (_, e1, e2) =>
         let
             val s1 = layout e1

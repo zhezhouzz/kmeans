@@ -62,11 +62,11 @@ fun approx ast =
       | TypedAst.Foldli (t, e1, e2, e3) => ApprAst.Foldli (t, approx e1, approx e2, approx e3)
       | TypedAst.Nth (t, e1, e2) => ApprAst.Nth (t, approx e1, approx e2)
       | TypedAst.AMap (t, e1, e2) =>
-        ApprAst.AMap (t, K.AMap (t, TypedAst.getType e2), approx e1, approx e2)
+        ApprAst.AMap (t, K.AMap (TypedAst.getType e2, t), approx e1, approx e2)
       | TypedAst.AFoldl (t, e1, e2, e3) =>
         ApprAst.AFoldl (t, K.AFoldl (TypedAst.getType e3), approx e1, approx e2, approx e3)
       | TypedAst.AMapi (t, e1, e2) =>
-        ApprAst.AMapi (t, K.AMapi (t, TypedAst.getType e2), approx e1, approx e2)
+        ApprAst.AMapi (t, K.AMapi (TypedAst.getType e2, t), approx e1, approx e2)
       | TypedAst.AFoldli (t, e1, e2, e3) =>
         ApprAst.AFoldli (t, K.AFoldli (TypedAst.getType e3), approx e1, approx e2, approx e3)
       | TypedAst.ANth (t, e1, e2) =>
